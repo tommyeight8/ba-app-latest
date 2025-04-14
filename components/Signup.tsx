@@ -31,7 +31,7 @@ export default function SignUpForm({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.id]: e.target.value });
-    setErrors({ ...errors, [e.target.id]: "" }); // clear individual error
+    setErrors({ ...errors, [e.target.id]: "" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
