@@ -18,6 +18,8 @@ export default function DashboardPageContent() {
   const [after, setAfter] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [lastNonSearchAfter, setLastNonSearchAfter] = useState<string>("");
+  const [loadingInitial, setLoadingInitial] = useState(true);
+
   const {
     query,
     setQuery,
@@ -27,6 +29,7 @@ export default function DashboardPageContent() {
     setContacts,
     isSearching,
     setIsSearching,
+    loadInitialContacts,
   } = useSearchContext();
 
   const pageSize = 12;
@@ -56,7 +59,12 @@ export default function DashboardPageContent() {
   }, []);
 
   useEffect(() => {
-    loadContacts();
+    const loadContactsInitially = async () => {
+      setLoadingInitial(true);
+      await loadInitialContacts();
+      setLoadingInitial(false);
+    };
+    loadContactsInitially();
   }, []);
 
   useEffect(() => {
@@ -102,7 +110,8 @@ export default function DashboardPageContent() {
 
   return (
     <main className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto">
-      {isPending ? (
+      {isPending || loadingInitial ? (
+        // 👇 Skeleton
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(12)].map((_, i) => (
             <div

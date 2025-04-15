@@ -45,7 +45,7 @@ export function NavMain({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && runSearch()}
-            className="text-sm pr-10 focus:border-0"
+            className="text-sm pr-10 focus:border-0 custom-selection"
           />
 
           {/* ❌ Clear button inside the input */}

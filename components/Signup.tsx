@@ -134,7 +134,7 @@ export default function SignUpForm({
         </Button> */}
         <SubmitButton loading={loading}>Signup</SubmitButton>
       </form>
-      <p className="text-sm text-gray-600 mt-4">{copyright}</p>
+      <p className="text-sm text-gray-300 mt-4">{copyright}</p>
     </div>
   );
 }

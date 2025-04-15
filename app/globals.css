@@ -120,3 +120,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.custom-selection::selection {
+  background-color: #9ca3af; /* Tailwind gray-400 */
+  color: white; /* optional */
+}
