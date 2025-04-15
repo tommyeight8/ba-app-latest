@@ -95,7 +95,8 @@ export default function LoginForm({
         {error && <p className="text-sm text-red-500">{error}</p>}
         <SubmitButton loading={loading}>Login</SubmitButton>
       </form>
-      {/* <p className="text-sm text-gray-600 mt-4">{copyright}</p> */}
+      {/* Update logo */}
+
       <Image
         src="/images/ba-logo-alt.png"
         alt="ba logo"
