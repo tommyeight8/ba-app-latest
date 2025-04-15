@@ -10,7 +10,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const handleLogin = async (data: LoginFormData) => {
-    await loginAction(data); // optional, for early validation
+    await loginAction(data);
 
     const res = await signIn("credentials", {
       email: data.email,
@@ -22,7 +22,13 @@ export default function LoginPage() {
       throw new Error("Invalid email or password.");
     }
 
-    router.push("/dashboard");
+    // 👇 Force session refresh before navigating
+    const sessionRes = await fetch("/api/auth/session");
+    if (sessionRes.ok) {
+      router.push("/dashboard");
+    } else {
+      console.error("Session not established");
+    }
   };
 
   return <LoginForm onSubmit={handleLogin} />;
