@@ -19,26 +19,21 @@ import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
+import { useSearchContext } from "@/contexts/SearchContext";
+import Link from "next/link";
+
 export function NavMain({
   items,
-  query,
-  setQuery,
-  runSearch,
-  isPending,
 }: {
   items: {
     title: string;
     url: string;
     icon?: Icon;
   }[];
-  query: string;
-  setQuery: (val: string) => void;
-  runSearch: () => void;
-  isPending: boolean;
 }) {
   const pathname = usePathname();
 
-  console.log(pathname);
+  const { query, setQuery, runSearch, isPending } = useSearchContext();
 
   return (
     <SidebarGroup>
@@ -50,7 +45,7 @@ export function NavMain({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && runSearch()}
-            className="text-sm pr-10"
+            className="text-sm pr-10 focus:border-0"
           />
 
           {/* ❌ Clear button inside the input */}
@@ -87,22 +82,24 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu> */}
         {/* 🔗 Nav Items */}
-        <SidebarMenu>
+        <SidebarMenu className="mt-2">
           {items.map((item) => {
             const isActive = pathname === item.url; // or use `.startsWith(item.url)` if needed
-            console.log(item.url);
+            console.log(pathname, item.url);
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  className={clsx(
-                    "cursor-pointer",
-                    isActive && "bg-[#111] text-white"
-                  )}
-                >
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
+                <Link href={item.url}>
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    className={clsx(
+                      "cursor-pointer",
+                      isActive && "bg-white text-black"
+                    )}
+                  >
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </Link>
               </SidebarMenuItem>
             );
           })}
