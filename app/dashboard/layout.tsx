@@ -7,6 +7,8 @@ import { NavMain } from "@/components/nav-main";
 import { SiteHeader } from "@/components/site-header";
 import { IconClipboardList, IconHome2, IconUsers } from "@tabler/icons-react";
 import { useState, useTransition } from "react";
+import { Providers } from "@/components/Providers";
+import { SearchProvider } from "@/contexts/SearchContext";
 
 export default function DashboardLayout({
   children,

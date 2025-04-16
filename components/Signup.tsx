@@ -8,6 +8,7 @@ import { IconUserPlus } from "@tabler/icons-react";
 import SubmitButton from "./SubmitButton";
 
 import { signupSchema, SignupFormData } from "@/lib/validators/authSchema";
+import Image from "next/image";
 
 export default function SignUpForm({
   onSubmit,
@@ -134,7 +135,14 @@ export default function SignUpForm({
         </Button> */}
         <SubmitButton loading={loading}>Signup</SubmitButton>
       </form>
-      <p className="text-sm text-gray-300 mt-4">{copyright}</p>
+      {/* <p className="text-sm text-gray-300 mt-4">{copyright}</p> */}
+      <Image
+        src="/images/ba-logo-alt.png"
+        alt="ba logo"
+        height={50}
+        width={90}
+        className="mt-6 invert-20"
+      />
     </div>
   );
 }
