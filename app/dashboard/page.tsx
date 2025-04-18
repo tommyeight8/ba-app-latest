@@ -27,7 +27,6 @@ export default function DashboardPageContent() {
   const [lastNonSearchAfter, setLastNonSearchAfter] = useState<string>("");
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [allContacts, setAllContacts] = useState<HubSpotContact[]>([]); // 👈 new
 
   const {
     query,
@@ -48,7 +47,6 @@ export default function DashboardPageContent() {
       try {
         const res = await fetchHubSpotContactsPaginated(pageSize, afterCursor);
         setContacts(res.results);
-        setAllContacts(res.results); // 👈 cache unfiltered
         setAfter(res.paging);
         setLastNonSearchAfter(afterCursor);
         if (afterCursor && !prevStack.includes(afterCursor)) {
@@ -120,14 +118,14 @@ export default function DashboardPageContent() {
   // 👇 Filter when status changes
   useEffect(() => {
     if (selectedStatus === "all") {
-      setContacts(allContacts);
+      setContacts(contacts);
     } else {
-      const filtered = allContacts.filter(
+      const filtered = contacts.filter(
         (c) => c.properties.l2_lead_status === selectedStatus
       );
       setContacts(filtered);
     }
-  }, [selectedStatus]);
+  }, [selectedStatus, contacts]);
 
   return (
     <main className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto">

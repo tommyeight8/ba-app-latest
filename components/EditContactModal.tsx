@@ -18,10 +18,12 @@ import { HubSpotContact } from "@/types/hubspot";
 import { updateL2LeadStatus } from "@/app/actions/updateL2LeadStatus";
 
 import { useSearchContext } from "@/contexts/SearchContext";
+import { fetchContactById } from "@/app/actions/fetchContactById";
 
 export function EditContactModal() {
   const { contact, open, setOpen, setContact } = useContactEdit();
   const { setContacts, contacts } = useSearchContext();
+  const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,7 +38,9 @@ export function EditContactModal() {
   });
 
   useEffect(() => {
-    if (contact) {
+    if (!open) {
+      setSelectedStatus(null);
+    } else if (contact) {
       setForm({
         StoreName: contact.properties.company || "",
         email: contact.properties.email || "",
@@ -46,8 +50,9 @@ export function EditContactModal() {
         state: contact.properties.state || "",
         zip: contact.properties.zip || "",
       });
+      setSelectedStatus(contact.properties.l2_lead_status as Status);
     }
-  }, [contact]);
+  }, [contact, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -67,30 +72,15 @@ export function EditContactModal() {
     if (res.success) {
       toast.success("Lead status set to 'samples'");
 
-      // ✅ Update modal
-      setContact({
-        ...contact,
-        properties: {
-          ...contact.properties,
-          hs_lead_status: "Samples",
-          l2_lead_status: "pending visit",
-        },
-      });
+      // ✅ Get updated contact data
+      const updated = await fetchContactById(contact.id);
 
-      // ✅ Update contact in list
-      setContacts((prev: HubSpotContact[]) =>
-        prev.map((c) =>
-          c.id === contact.id
-            ? {
-                ...c,
-                properties: {
-                  ...c.properties,
-                  hs_lead_status: "Samples",
-                  l2_lead_status: "pending visit",
-                },
-              }
-            : c
-        )
+      // ✅ Update modal state
+      setContact(updated);
+
+      // ✅ Update global contact list
+      setContacts((prev) =>
+        prev.map((c) => (c.id === contact.id ? updated : c))
       );
 
       setOpen(false);
@@ -152,22 +142,21 @@ export function EditContactModal() {
                           type="radio"
                           name="l2_lead_status"
                           value={status}
-                          checked={isChecked}
+                          checked={selectedStatus === status}
                           onChange={async () => {
                             if (!contact?.id) return;
+
+                            setSelectedStatus(status); // ✅ update UI immediately
+
                             const res = await updateL2LeadStatus(
                               contact.id,
                               status
                             );
                             if (res.success) {
                               toast.success("L2 status updated");
-                              const updated = {
-                                ...contact,
-                                properties: {
-                                  ...contact.properties,
-                                  l2_lead_status: status,
-                                },
-                              };
+                              const updated = await fetchContactById(
+                                contact.id
+                              );
                               setContact(updated);
                               setContacts((prev) =>
                                 prev.map((c) =>
@@ -178,11 +167,13 @@ export function EditContactModal() {
                               toast.error(res.message || "Update failed");
                             }
                           }}
-                          className={`appearance-none h-4 w-4 rounded-full border border-gray-300 ring-2 ring-offset-2 ring-offset-white checked:border-transparent checked:ring-inset focus:outline-none transition
-              ${
-                isChecked ? statusColors[status] : "ring-transparent bg-white"
-              }`}
+                          className={`appearance-none h-4 w-4 rounded-full border border-gray-300 ring-2 ring-offset-2 ring-offset-white checked:border-transparent checked:ring-inset focus:outline-none transition ${
+                            selectedStatus === status
+                              ? statusColors[status]
+                              : "ring-transparent bg-white"
+                          }`}
                         />
+
                         <span className="text-sm capitalize">{status}</span>
                       </label>
                     );

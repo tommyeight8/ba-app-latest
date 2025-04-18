@@ -12,12 +12,11 @@ type SearchContextType = {
   setQuery: (val: string) => void;
   isPending: boolean;
   contacts: HubSpotContact[];
-  // setContacts: (contacts: HubSpotContact[]) => void;
   setContacts: React.Dispatch<React.SetStateAction<HubSpotContact[]>>;
   runSearch: () => void;
   isSearching: boolean;
   setIsSearching: (val: boolean) => void;
-  loadInitialContacts: () => void; // ← this was missing
+  loadInitialContacts: () => void;
   after: string | null;
   setAfter: (val: string | null) => void;
 };
@@ -30,6 +29,7 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [after, setAfter] = useState<string | null>(null);
+  const [allContacts, setAllContacts] = useState<HubSpotContact[]>([]);
 
   const runSearch = async () => {
     if (query.length < 2) return;
@@ -42,7 +42,7 @@ export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loadInitialContacts = async () => {
     startTransition(async () => {
-      const res = await fetchHubSpotContactsPaginated(12, ""); // or pageSize
+      const res = await fetchHubSpotContactsPaginated(12, "");
       setContacts(res.results);
       setAfter(res.paging ?? null);
     });
