@@ -18,22 +18,5 @@ export default function SignupPage() {
     }
   }, [status, router]);
 
-  const handleSignup = async (data: SignupFormData) => {
-    try {
-      await signupAction(data);
-
-      const res = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (res?.error) throw new Error("Sign in failed.");
-      router.push("/dashboard");
-    } catch (err: any) {
-      throw new Error(err.message || "Failed to sign up");
-    }
-  };
-
-  return <SignUpForm onSubmit={handleSignup} />;
+  return <SignUpForm />;
 }

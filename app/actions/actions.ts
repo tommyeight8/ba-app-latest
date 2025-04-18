@@ -202,7 +202,9 @@ export async function fetchHubSpotContactsPaginated(limit = 10, after = "") {
     "address",
     "city",
     "state",
-    "zip", // adjust this if your portal uses postalcode or zip_code
+    "zip",
+    "hs_lead_status", // <-- explicitly request
+    "l2_lead_status",
   ];
 
   const url = `${baseUrl}/crm/v3/objects/contacts?limit=${limit}${

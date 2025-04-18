@@ -39,7 +39,7 @@ export function SiteHeader({
   const userEmail = session?.user.email;
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" });
+    await signOut({ callbackUrl: "/" });
   };
 
   return (

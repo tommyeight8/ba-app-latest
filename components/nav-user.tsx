@@ -43,7 +43,7 @@ export function NavUser({
   const userEmail = session?.user.email;
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/login" }); // 👈 optional redirect after sign out
+    await signOut({ callbackUrl: "/" }); // 👈 optional redirect after sign out
   };
 
   return (

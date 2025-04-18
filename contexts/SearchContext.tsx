@@ -12,7 +12,8 @@ type SearchContextType = {
   setQuery: (val: string) => void;
   isPending: boolean;
   contacts: HubSpotContact[];
-  setContacts: (contacts: HubSpotContact[]) => void;
+  // setContacts: (contacts: HubSpotContact[]) => void;
+  setContacts: React.Dispatch<React.SetStateAction<HubSpotContact[]>>;
   runSearch: () => void;
   isSearching: boolean;
   setIsSearching: (val: boolean) => void;

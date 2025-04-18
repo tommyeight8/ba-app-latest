@@ -1,148 +1,143 @@
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { IconUserPlus } from "@tabler/icons-react";
+import React, { useRef, useState } from "react";
+import { registerUser } from "@/app/actions/registerUser";
 import SubmitButton from "./SubmitButton";
-
-import { signupSchema, SignupFormData } from "@/lib/validators/authSchema";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import Link from "next/link";
+import { UserSignupSchema } from "@/lib/schemas";
 import Image from "next/image";
+import { User } from "lucide-react";
 
-export default function SignUpForm({
-  onSubmit,
-}: {
-  onSubmit: (data: SignupFormData) => Promise<void>;
-}) {
-  const [form, setForm] = useState<SignupFormData>({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-  });
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof SignupFormData, string>>
-  >({});
-  const [loading, setLoading] = useState(false);
-  const [generalError, setGeneralError] = useState("");
+const AdminRegisterForm = () => {
+  const ref = useRef<HTMLFormElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const router = useRouter();
 
-  const year = new Date().getFullYear();
-  const copyright = `© ${year} VPR`;
+  const clientAction = async (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent form from submitting the default way
+    console.log("✅ Form submitted");
+    setIsSubmitting(true);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.id]: e.target.value });
-    setErrors({ ...errors, [e.target.id]: "" });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    setGeneralError("");
-    setLoading(true);
-
-    const result = signupSchema.safeParse(form);
-    if (!result.success) {
-      const fieldErrors: typeof errors = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0])
-          fieldErrors[err.path[0] as keyof SignupFormData] = err.message;
-      });
-      setErrors(fieldErrors);
-      setLoading(false);
-      return;
-    }
+    const formData = new FormData(ref.current!);
+    const data = Object.fromEntries(formData.entries());
 
     try {
-      await onSubmit(form);
-    } catch (err: any) {
-      setGeneralError(err.message || "Something went wrong.");
+      const newAdmin = {
+        email: data.email as string,
+        firstName: data.firstName as string,
+        lastName: data.lastName as string,
+        password: data.password as string,
+      };
+
+      const validateInput = UserSignupSchema.safeParse(newAdmin);
+
+      if (!validateInput.success) {
+        const fieldErrors = validateInput.error.issues.reduce((acc, issue) => {
+          acc[issue.path[0]] = issue.message;
+          return acc;
+        }, {} as { [key: string]: string });
+
+        setErrors(fieldErrors);
+        return;
+      }
+
+      const response = await registerUser(validateInput.data);
+
+      if (response?.error) {
+        toast.error(response.error);
+        return;
+      }
+
+      const signInResponse = await signIn("credentials", {
+        redirect: false,
+        email: validateInput.data.email,
+        password: validateInput.data.password,
+      });
+
+      ref.current?.reset();
+
+      if (signInResponse?.error) {
+        toast.error("Sign-in failed. Please try logging in.");
+      } else {
+        toast.success("Welcome!");
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+      toast.error("An unexpected error occurred. Please try again later.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center bg-black flex-col">
-      <h3 className="text-white text-2xl font-bold mb-8 flex items-center gap-1">
-        <IconUserPlus />
-        <span>BA Sign Up</span>
-      </h3>
-
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm mx-auto space-y-6 text-white"
-      >
+    <div className="w-full max-w-md p-6 space-y-6 rounded-xl mx-auto border border-white/10 shadow-xl bg-white/10 backdrop-blur-md">
+      <h1 className="text-2xl font-bold text-center uppercase flex items-center justify-center gap-2 text-white">
+        <User size={24} /> BA Signup
+      </h1>
+      <form onSubmit={clientAction} className="space-y-4" ref={ref}>
         <div>
-          <Label htmlFor="firstName">First Name</Label>
-          <Input
+          <label className="block font-medium text-white">Email</label>
+          <input
+            type="email"
+            name="email"
+            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+          />
+          {errors.email && <p className="text-red-400">{errors.email}</p>}
+        </div>
+
+        <div>
+          <label className="block font-medium text-white">First name</label>
+          <input
             type="text"
-            id="firstName"
-            value={form.firstName}
-            onChange={handleChange}
-            className="mt-2"
+            name="firstName"
+            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
           />
           {errors.firstName && (
-            <p className="text-sm text-red-500">{errors.firstName}</p>
+            <p className="text-red-400">{errors.firstName}</p>
           )}
         </div>
+
         <div>
-          <Label htmlFor="lastName">Last Name</Label>
-          <Input
+          <label className="block font-medium text-white">Last name</label>
+          <input
             type="text"
-            id="lastName"
-            value={form.lastName}
-            onChange={handleChange}
-            className="mt-2"
+            name="lastName"
+            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
           />
-          {errors.lastName && (
-            <p className="text-sm text-red-500">{errors.lastName}</p>
-          )}
+          {errors.lastName && <p className="text-red-400">{errors.lastName}</p>}
         </div>
+
         <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            type="email"
-            id="email"
-            value={form.email}
-            onChange={handleChange}
-            className="mt-2"
-          />
-          {errors.email && (
-            <p className="text-sm text-red-500">{errors.email}</p>
-          )}
-        </div>
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <Input
+          <label className="block font-medium text-white">Password</label>
+          <input
             type="password"
-            id="password"
-            value={form.password}
-            onChange={handleChange}
-            className="mt-2"
+            name="password"
+            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
           />
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password}</p>
-          )}
+
+          {/* ✅ Hidden role input */}
+          <input type="hidden" name="role" value="user" />
+
+          {errors.password && <p className="text-red-400">{errors.password}</p>}
         </div>
-        {generalError && <p className="text-sm text-red-500">{generalError}</p>}
-        {/* <Button
-          type="submit"
-          className="w-full bg-gray-100 text-black hover:bg-gray-300"
-          disabled={loading}
-        >
-          {loading ? "Signing up..." : "Sign Up"}
-        </Button> */}
-        <SubmitButton loading={loading}>Signup</SubmitButton>
+
+        <SubmitButton isSubmitting={isSubmitting} type="Sign up" />
       </form>
-      {/* <p className="text-sm text-gray-300 mt-4">{copyright}</p> */}
+
       <Image
         src="/images/ba-logo-alt.png"
-        alt="ba logo"
+        alt="Ba App"
         height={50}
-        width={90}
-        className="mt-6 invert-20"
+        width={100}
+        className="m-auto invert-20"
       />
     </div>
   );
-}
+};
+
+export default AdminRegisterForm;

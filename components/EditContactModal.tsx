@@ -10,12 +10,20 @@ import { Input } from "@/components/ui/input";
 import { useContactEdit } from "@/context/ContactEditContext";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { setLeadStatusToSamples } from "@/app/actions/setLeadStatus";
+import { toast } from "react-hot-toast";
+import { Loader2 } from "lucide-react"; // 🌀 Import spinner icon
+import { HubSpotContact } from "@/types/hubspot";
+
+import { useSearchContext } from "@/contexts/SearchContext";
 
 export function EditContactModal() {
-  const { contact, open, setOpen } = useContactEdit();
+  const { contact, open, setOpen, setContact } = useContactEdit();
+  const { setContacts, contacts } = useSearchContext();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [form, setForm] = useState({
-    firstname: "",
-    lastname: "",
     StoreName: "",
     email: "",
     phone: "",
@@ -28,8 +36,6 @@ export function EditContactModal() {
   useEffect(() => {
     if (contact) {
       setForm({
-        firstname: contact.properties.firstname || "",
-        lastname: contact.properties.lastname || "",
         StoreName: contact.properties.company || "",
         email: contact.properties.email || "",
         phone: contact.properties.phone || "",
@@ -47,15 +53,55 @@ export function EditContactModal() {
 
   const handleSubmit = () => {
     console.log("Updated contact:", form);
-    // TODO: Send to API or mutation logic
     setOpen(false);
+  };
+
+  const handleSetLeadStatus = async () => {
+    if (!contact?.id) return;
+    setIsSubmitting(true);
+    const res = await setLeadStatusToSamples(contact.id);
+    setIsSubmitting(false);
+
+    if (res.success) {
+      toast.success("Lead status set to 'samples'");
+
+      // ✅ Update modal
+      setContact({
+        ...contact,
+        properties: {
+          ...contact.properties,
+          hs_lead_status: "Samples",
+          l2_lead_status: "pending visit",
+        },
+      });
+
+      // ✅ Update contact in list
+      setContacts((prev: HubSpotContact[]) =>
+        prev.map((c) =>
+          c.id === contact.id
+            ? {
+                ...c,
+                properties: {
+                  ...c.properties,
+                  hs_lead_status: "Samples",
+                  l2_lead_status: "pending visit",
+                },
+              }
+            : c
+        )
+      );
+
+      setOpen(false);
+    } else {
+      toast.error(res.message || "Failed to update lead status.");
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Contact</DialogTitle>
+          <DialogTitle>Contact</DialogTitle>
         </DialogHeader>
         <div className="grid gap-3 py-2">
           {Object.entries(form).map(([key, value]) => (
@@ -70,13 +116,20 @@ export function EditContactModal() {
                 id={key}
                 name={key}
                 value={value}
-                // placeholder={key}
                 onChange={handleChange}
               />
             </div>
           ))}
 
           <Button onClick={handleSubmit}>Update</Button>
+          <Button
+            variant="secondary"
+            onClick={handleSetLeadStatus}
+            disabled={isSubmitting}
+          >
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Set Lead Status to Samples
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

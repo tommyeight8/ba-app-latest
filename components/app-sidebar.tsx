@@ -20,7 +20,7 @@ export function AppSidebar({
 }) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader className="bg-black text-white">
+      <SidebarHeader className="bg-[#1c1c1c] text-white">
         <Image
           src="/images/ba-logo-alt.png"
           width={90}
@@ -43,11 +43,11 @@ export function AppSidebar({
         </SidebarMenu> */}
       </SidebarHeader>
 
-      <SidebarContent className="bg-black text-white">
+      <SidebarContent className="bg-[#1c1c1c] text-white">
         {children} {/* ← Render NavMain or anything else here */}
       </SidebarContent>
 
-      <SidebarFooter className="bg-black text-white">
+      <SidebarFooter className="bg-[#1c1c1c] text-white">
         <NavUser
           user={{
             name: "Tom",

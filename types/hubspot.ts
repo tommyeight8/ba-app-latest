@@ -4,7 +4,15 @@ export type HubSpotContact = {
     firstname?: string;
     lastname?: string;
     email?: string;
-    [key: string]: any;
+    phone?: string;
+    company?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+    hs_lead_status?: string;
+    l2_lead_status?: string;
+    [key: string]: any; // Keep fallback for dynamic properties
   };
 };
 

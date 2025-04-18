@@ -1,17 +1,24 @@
 "use client";
 
-import { startTransition, useEffect, useState, useTransition } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactCardGrid } from "@/components/ContactCardList";
 import { EditContactModal } from "@/components/EditContactModal";
 import { PaginationControls } from "@/components/PaginationControl";
-import { HubSpotContact } from "@/types/hubspot";
 import {
   fetchHubSpotContactsPaginated,
   fetchHubSpotContactsTotalCount,
   searchContactsByCompany,
 } from "@/app/actions/actions";
 import { useSearchContext } from "@/contexts/SearchContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { HubSpotContact } from "@/types/hubspot";
 
 export default function DashboardPageContent() {
   const [prevStack, setPrevStack] = useState<string[]>([]);
@@ -19,6 +26,8 @@ export default function DashboardPageContent() {
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [lastNonSearchAfter, setLastNonSearchAfter] = useState<string>("");
   const [loadingInitial, setLoadingInitial] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [allContacts, setAllContacts] = useState<HubSpotContact[]>([]); // 👈 new
 
   const {
     query,
@@ -39,9 +48,9 @@ export default function DashboardPageContent() {
       try {
         const res = await fetchHubSpotContactsPaginated(pageSize, afterCursor);
         setContacts(res.results);
+        setAllContacts(res.results); // 👈 cache unfiltered
         setAfter(res.paging);
         setLastNonSearchAfter(afterCursor);
-
         if (afterCursor && !prevStack.includes(afterCursor)) {
           setPrevStack((prev) => [...prev, afterCursor]);
         }
@@ -89,8 +98,8 @@ export default function DashboardPageContent() {
 
   const handlePrevPage = () => {
     const prev = [...prevStack];
-    prev.pop(); // current
-    const prevCursor = prev.pop(); // previous
+    prev.pop();
+    const prevCursor = prev.pop();
     setPrevStack(prev);
 
     if (isSearching) {
@@ -108,10 +117,21 @@ export default function DashboardPageContent() {
     }
   };
 
+  // 👇 Filter when status changes
+  useEffect(() => {
+    if (selectedStatus === "all") {
+      setContacts(allContacts);
+    } else {
+      const filtered = allContacts.filter(
+        (c) => c.properties.l2_lead_status === selectedStatus
+      );
+      setContacts(filtered);
+    }
+  }, [selectedStatus]);
+
   return (
     <main className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto">
       {isPending || loadingInitial ? (
-        // 👇 Skeleton
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(12)].map((_, i) => (
             <div
@@ -131,8 +151,27 @@ export default function DashboardPageContent() {
         </div>
       ) : (
         <>
+          {/* Status Filter */}
+          <div className="w-full max-w-xs">
+            <Select
+              value={selectedStatus}
+              onValueChange={(val) => setSelectedStatus(val)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Status</SelectItem>
+                <SelectItem value="pending visit">Pending Visit</SelectItem>
+                <SelectItem value="shipped">Shipped</SelectItem>
+                <SelectItem value="dropped off">Dropped Off</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <ContactCardGrid contacts={contacts} />
           <EditContactModal />
+
           {!isSearching && (
             <PaginationControls
               page={prevStack.length + 1}

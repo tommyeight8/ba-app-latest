@@ -1,30 +1,28 @@
-// components/SubmitButton.tsx
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
+import React from "react";
 
-export default function SubmitButton({
-  loading,
-  children,
-  className = "",
-}: {
-  loading: boolean;
-  children: React.ReactNode;
-  className?: string;
-}) {
+type SubmitButtonProps = {
+  isSubmitting?: boolean;
+  disabled?: boolean;
+  type: string;
+};
+
+const SubmitButton: React.FC<SubmitButtonProps> = ({
+  isSubmitting = false,
+  disabled = false,
+  type,
+}) => {
+  const showSpinner = isSubmitting; // `useFormStatus` removed, not needed for client forms
+
   return (
-    <Button
+    <button
+      className="w-full bg-gray-200 rounded-lg p-2 cursor-pointer transition duration-200 hover:bg-gray-200 text-black font-semibold"
       type="submit"
-      className={`w-full bg-gray-100 text-black hover:bg-gray-300 ${className}`}
-      disabled={loading}
+      disabled={disabled || isSubmitting}
     >
-      {loading ? (
-        <span className="flex items-center justify-center gap-2">
-          <Loader2 className="animate-spin w-4 h-4" />
-          Loading...
-        </span>
-      ) : (
-        children
-      )}
-    </Button>
+      {showSpinner ? <Loader className="animate-spin w-5 h- m-auto" /> : type}
+    </button>
   );
-}
+};
+
+export default SubmitButton;

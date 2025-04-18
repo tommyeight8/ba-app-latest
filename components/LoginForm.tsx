@@ -1,109 +1,136 @@
+// src/app/auth/signin/page.tsx
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { IconUserFilled } from "@tabler/icons-react";
-import SubmitButton from "./SubmitButton";
-import { LoginFormData, loginSchema } from "@/lib/validators/authSchema";
+import React, { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import SubmitButton from "@/components/SubmitButton";
+import { Lock } from "lucide-react";
+import { UserLoginSchema, UserLoginValues } from "@/lib/schemas";
+import toast from "react-hot-toast";
 import Image from "next/image";
+import Link from "next/link";
 
-export default function LoginForm({
-  onSubmit,
-}: {
-  onSubmit: (data: LoginFormData) => Promise<void>;
-}) {
-  const [form, setForm] = useState<LoginFormData>({ email: "", password: "" });
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof LoginFormData, string>>
-  >({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const AdminLoginForm: React.FC = () => {
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState(false);
+  const [retryAfter, setRetryAfter] = useState(0);
 
-  const year = new Date().getFullYear();
-  const copyright = `© ${year} VPR`;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<UserLoginValues>({
+    resolver: zodResolver(UserLoginSchema),
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.id]: e.target.value });
-    setErrors({ ...errors, [e.target.id]: "" });
-  };
+  useEffect(() => {
+    if (blocked && retryAfter > 0) {
+      const interval = setInterval(() => {
+        setRetryAfter((prev) => {
+          if (prev <= 1) {
+            setBlocked(false); // ✅ Auto-unblock when timer hits 0
+            setError(null); // ✅ Clear error message
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    setError("");
-    setLoading(true);
-
-    const result = loginSchema.safeParse(form);
-    if (!result.success) {
-      const fieldErrors: typeof errors = {};
-      result.error.errors.forEach((err) => {
-        if (err.path[0])
-          fieldErrors[err.path[0] as keyof LoginFormData] = err.message;
-      });
-      setErrors(fieldErrors);
-      setLoading(false);
-      return;
+      return () => clearInterval(interval);
     }
+  }, [blocked, retryAfter]);
 
-    try {
-      await onSubmit(form);
-    } catch (err: any) {
-      setError(err.message || "Login failed.");
-    } finally {
-      setLoading(false);
+  const onSubmit = async (data: UserLoginValues) => {
+    setError(null);
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    });
+
+    if (result?.error) {
+      const errorMessage = result.error;
+
+      if (errorMessage.includes("Too many login attempts")) {
+        const match = errorMessage.match(/\d+/); // Extract retry time in seconds
+        const retryTime = match ? parseInt(match[0], 10) : 60;
+        setBlocked(true);
+        setRetryAfter(retryTime);
+      }
+
+      setError(result.error);
+    } else {
+      toast.success("Welcome!");
+      router.push("/dashboard"); // Redirect on successful sign-in
     }
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center bg-black flex-col">
-      <h3 className="text-white text-2xl font-bold mb-8 flex items-center gap-1">
-        <IconUserFilled />
-        <span>BA Login</span>
-      </h3>
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-6 text-white"
-      >
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            type="email"
-            id="email"
-            value={form.email}
-            onChange={handleChange}
-            className="mt-2"
-          />
-          {errors.email && (
-            <p className="text-sm text-red-500">{errors.email}</p>
-          )}
-        </div>
-        <div>
-          <Label htmlFor="password">Password</Label>
-          <Input
-            type="password"
-            id="password"
-            value={form.password}
-            onChange={handleChange}
-            className="mt-2"
-          />
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password}</p>
-          )}
-        </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
-        <SubmitButton loading={loading}>Login</SubmitButton>
-      </form>
-      {/* Update logo */}
+    <div className="items-center justify-center text-white">
+      <div className="w-full max-w-md p-6 space-y-6 mx-auto rounded-xl border border-white/10 shadow-xl bg-white/10 backdrop-blur-md">
+        <h3 className="text-2xl font-semibold flex items-center justify-center gap-2 w-full uppercase">
+          <Lock />
+          Login
+        </h3>
 
-      <Image
-        src="/images/ba-logo-alt.png"
-        alt="ba logo"
-        height={50}
-        width={90}
-        className="mt-6 invert-20"
-      />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <label className="block font-medium text-white">Email</label>
+            <input
+              type="email"
+              {...register("email")}
+              className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            />
+            {errors.email && (
+              <p className="text-red-400">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block font-medium text-white">Password</label>
+            <input
+              type="password"
+              {...register("password")}
+              className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            />
+            {errors.password && (
+              <p className="text-red-400">{errors.password.message}</p>
+            )}
+          </div>
+
+          {blocked && retryAfter > 0 && (
+            <p className="text-red-400 text-center text-sm">
+              Too many login attempts. Try again in {retryAfter} seconds.
+            </p>
+          )}
+
+          {!blocked && error && (
+            <p className="text-red-400 text-sm text-center">{error}</p>
+          )}
+
+          <SubmitButton
+            isSubmitting={isSubmitting || blocked}
+            disabled={blocked}
+            type="Log in"
+          />
+        </form>
+
+        <Image
+          src="/images/ba-logo-alt.png"
+          alt="Ba App"
+          height={50}
+          width={100}
+          className="m-auto invert-20"
+        />
+      </div>
     </div>
   );
-}
+};
+
+export default AdminLoginForm;

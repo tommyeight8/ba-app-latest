@@ -14,15 +14,17 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials || !credentials.email || !credentials.password)
-          return null;
+        if (!credentials?.email || !credentials.password) {
+          throw new Error("Email and password are required");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
 
-        if (!user || !(await compare(credentials.password, user.password)))
-          return null;
+        if (!user || !(await compare(credentials.password, user.password))) {
+          throw new Error("Invalid credentials");
+        }
 
         return {
           id: user.id,
