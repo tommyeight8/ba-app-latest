@@ -17,17 +17,17 @@ const statusMap: Record<
   },
   shipped: {
     label: "Shipped",
-    dotColor: "bg-blue-500",
-    bgColor: "bg-blue-100",
-    textColor: "text-orange-300",
-    borderColor: "border-orange-300",
+    dotColor: "bg-blue-300",
+    bgColor: "bg-blue-50",
+    textColor: "text-blue-400",
+    borderColor: "border-blue-300",
   },
   "dropped off": {
     label: "Dropped Off",
-    dotColor: "bg-red-500",
-    bgColor: "bg-red-100",
-    textColor: "text-orange-300",
-    borderColor: "border-orange-300",
+    dotColor: "bg-green-300",
+    bgColor: "bg-green-50",
+    textColor: "text-green-400",
+    borderColor: "border-green-300",
   },
 };
 

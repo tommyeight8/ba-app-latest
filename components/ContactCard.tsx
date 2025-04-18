@@ -17,8 +17,10 @@ export function ContactCard({ contact }: { contact: HubSpotContact }) {
     l2_lead_status,
   } = contact.properties;
 
+  const validL2Statuses = ["pending visit", "shipped", "dropped off"];
   const showBadge =
-    hs_lead_status === "Samples" && l2_lead_status === "pending visit";
+    hs_lead_status === "Samples" &&
+    validL2Statuses.includes(l2_lead_status ?? "");
 
   return (
     <Card

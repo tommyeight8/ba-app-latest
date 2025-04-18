@@ -14,6 +14,16 @@ import { setLeadStatusToSamples } from "@/app/actions/setLeadStatus";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react"; // 🌀 Import spinner icon
 import { HubSpotContact } from "@/types/hubspot";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+import { updateL2LeadStatus } from "@/app/actions/updateL2LeadStatus";
 
 import { useSearchContext } from "@/contexts/SearchContext";
 
@@ -123,8 +133,55 @@ export function EditContactModal() {
 
           <Button onClick={handleSubmit}>Update</Button>
           {contact?.properties.hs_lead_status === "Samples" ? (
-            <div className="text-center p-2 bg-muted rounded-lg text-[#999] capitalize">
-              {contact?.properties.l2_lead_status}
+            <div className="space-y-2 text-center p-2 border border-gray-200 rounded-lg">
+              <label className="text-sm text-[#ccc] block mb-3">
+                Samples Status
+              </label>
+              <RadioGroup
+                defaultValue={contact?.properties.l2_lead_status}
+                onValueChange={async (val) => {
+                  if (!contact?.id) return;
+                  const res = await updateL2LeadStatus(contact.id, val);
+                  if (res.success) {
+                    toast.success("L2 status updated");
+
+                    const updated = {
+                      ...contact,
+                      properties: {
+                        ...contact.properties,
+                        l2_lead_status: val,
+                      },
+                    };
+
+                    setContact(updated);
+                    setContacts((prev) =>
+                      prev.map((c) => (c.id === contact.id ? updated : c))
+                    );
+                  } else {
+                    toast.error(res.message || "Update failed");
+                  }
+                }}
+                className="flex items-center gap-4 w-full justify-center"
+              >
+                <div className="flex items-center space-x-2 ">
+                  <RadioGroupItem value="pending visit" id="pending" />
+                  <label htmlFor="pending" className="text-sm">
+                    Pending Visit
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="shipped" id="shipped" />
+                  <label htmlFor="shipped" className="text-sm">
+                    Shipped
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="dropped off" id="dropped" />
+                  <label htmlFor="dropped" className="text-sm">
+                    Dropped Off
+                  </label>
+                </div>
+              </RadioGroup>
             </div>
           ) : (
             <Button
