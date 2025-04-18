@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VPR BA",
-  description: "VPR BA - Hubspot integration",
+  title: "BA - App",
+  description: "BA - App - Hubspot integration",
 };
 
 export default function RootLayout({

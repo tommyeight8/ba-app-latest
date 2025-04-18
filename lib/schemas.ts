@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 export const UserSignupSchema = z.object({
-  email: z.string().email(),
-  firstName: z.string().min(2),
-  lastName: z.string().min(2),
+  email: z.string().email("Please enter a valid email address"),
+  firstName: z.string().min(2, "First name is required"),
+  lastName: z.string().min(2, "Last name is required"),
   role: z.enum(["admin", "user"]).default("user"),
-  password: z.string().min(6),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export type UserSignupValues = z.infer<typeof UserSignupSchema>;
