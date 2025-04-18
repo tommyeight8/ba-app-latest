@@ -14,14 +14,6 @@ import { setLeadStatusToSamples } from "@/app/actions/setLeadStatus";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react"; // 🌀 Import spinner icon
 import { HubSpotContact } from "@/types/hubspot";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { updateL2LeadStatus } from "@/app/actions/updateL2LeadStatus";
 
@@ -107,6 +99,15 @@ export function EditContactModal() {
     }
   };
 
+  const statuses = ["pending visit", "shipped", "dropped off"] as const;
+  type Status = "pending visit" | "shipped" | "dropped off";
+
+  const statusColors: Record<Status, string> = {
+    "pending visit": "ring-orange-500 bg-orange-500",
+    shipped: "ring-blue-500 bg-blue-500",
+    "dropped off": "ring-green-500 bg-green-500",
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
@@ -133,55 +134,61 @@ export function EditContactModal() {
 
           <Button onClick={handleSubmit}>Update</Button>
           {contact?.properties.hs_lead_status === "Samples" ? (
-            <div className="space-y-2 text-center p-2 border border-gray-200 rounded-lg">
-              <label className="text-sm text-[#ccc] block mb-3">
+            <div className="space-y-2 text-center p-4 border rounded-lg">
+              <label className="text-sm text-muted-foreground block mb-2">
                 Samples Status
               </label>
-              <RadioGroup
-                defaultValue={contact?.properties.l2_lead_status}
-                onValueChange={async (val) => {
-                  if (!contact?.id) return;
-                  const res = await updateL2LeadStatus(contact.id, val);
-                  if (res.success) {
-                    toast.success("L2 status updated");
-
-                    const updated = {
-                      ...contact,
-                      properties: {
-                        ...contact.properties,
-                        l2_lead_status: val,
-                      },
-                    };
-
-                    setContact(updated);
-                    setContacts((prev) =>
-                      prev.map((c) => (c.id === contact.id ? updated : c))
+              <div className="flex justify-center gap-6">
+                {(["pending visit", "shipped", "dropped off"] as Status[]).map(
+                  (status) => {
+                    const isChecked =
+                      contact?.properties.l2_lead_status === status;
+                    return (
+                      <label
+                        key={status}
+                        className="flex items-center space-x-2 cursor-pointer"
+                      >
+                        <input
+                          type="radio"
+                          name="l2_lead_status"
+                          value={status}
+                          checked={isChecked}
+                          onChange={async () => {
+                            if (!contact?.id) return;
+                            const res = await updateL2LeadStatus(
+                              contact.id,
+                              status
+                            );
+                            if (res.success) {
+                              toast.success("L2 status updated");
+                              const updated = {
+                                ...contact,
+                                properties: {
+                                  ...contact.properties,
+                                  l2_lead_status: status,
+                                },
+                              };
+                              setContact(updated);
+                              setContacts((prev) =>
+                                prev.map((c) =>
+                                  c.id === contact.id ? updated : c
+                                )
+                              );
+                            } else {
+                              toast.error(res.message || "Update failed");
+                            }
+                          }}
+                          className={`appearance-none h-4 w-4 rounded-full border border-gray-300 ring-2 ring-offset-2 ring-offset-white checked:border-transparent checked:ring-inset focus:outline-none transition
+              ${
+                isChecked ? statusColors[status] : "ring-transparent bg-white"
+              }`}
+                        />
+                        <span className="text-sm capitalize">{status}</span>
+                      </label>
                     );
-                  } else {
-                    toast.error(res.message || "Update failed");
                   }
-                }}
-                className="flex items-center gap-4 w-full justify-center"
-              >
-                <div className="flex items-center space-x-2 ">
-                  <RadioGroupItem value="pending visit" id="pending" />
-                  <label htmlFor="pending" className="text-sm">
-                    Pending Visit
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="shipped" id="shipped" />
-                  <label htmlFor="shipped" className="text-sm">
-                    Shipped
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="dropped off" id="dropped" />
-                  <label htmlFor="dropped" className="text-sm">
-                    Dropped Off
-                  </label>
-                </div>
-              </RadioGroup>
+                )}
+              </div>
             </div>
           ) : (
             <Button
