@@ -122,14 +122,23 @@ export function EditContactModal() {
           ))}
 
           <Button onClick={handleSubmit}>Update</Button>
-          <Button
-            variant="secondary"
-            onClick={handleSetLeadStatus}
-            disabled={isSubmitting}
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Set Lead Status to Samples
-          </Button>
+          {contact?.properties.hs_lead_status === "Samples" ? (
+            <div className="text-center p-2 bg-muted rounded-lg text-[#999] capitalize">
+              {contact?.properties.l2_lead_status}
+            </div>
+          ) : (
+            <Button
+              variant="secondary"
+              onClick={handleSetLeadStatus}
+              disabled={isSubmitting}
+              className="hover:bg-green-300 hover:text-white transition duration-200 ease"
+            >
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Set Lead Status to Samples
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
