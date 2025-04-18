@@ -1,8 +1,6 @@
 "use client";
 import React, { useState } from "react";
 
-import { AnimatePresence, motion } from "motion/react";
-import { CanvasRevealEffect } from "@/components/ui/canvas-reveal-effect";
 import SignUpForm from "@/components/Signup";
 import LoginForm from "@/components/LoginForm"; // 👈 Make sure you have this component
 import { WavyBackground } from "./ui/wavy-background";
