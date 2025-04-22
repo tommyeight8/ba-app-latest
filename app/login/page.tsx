@@ -1,11 +1,12 @@
-"use client";
+import AdminLoginForm from "@/components/LoginForm";
+import React from "react";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
-import LoginForm from "@/components/LoginForm";
-import { loginAction } from "@/app/actions/login";
-import { LoginFormData } from "@/lib/validators/authSchema";
+const page = () => {
+  return (
+    <div>
+      <AdminLoginForm />
+    </div>
+  );
+};
 
-export default function LoginPage() {
-  return <LoginForm />;
-}
+export default page;
