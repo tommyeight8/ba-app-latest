@@ -15,7 +15,7 @@ export const registerUser = async (newUser: UserSignupValues) => {
       return { error: errorMessage };
     }
 
-    const { email, password, firstName, lastName, role, state, ba_id } =
+    const { email, password, firstName, lastName, state, ba_id } =
       validateInput.data;
 
     if (!ba_id) return { error: "BA ID is required." };
@@ -41,9 +41,8 @@ export const registerUser = async (newUser: UserSignupValues) => {
         password: hashedPassword,
         firstName,
         lastName,
-        role,
         state,
-        ba_id: cleanedBaId, // ✅ safe to use now
+        ba_id: cleanedBaId, // This is all that's needed to create the relation
       },
     });
 
