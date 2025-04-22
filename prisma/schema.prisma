@@ -8,11 +8,23 @@ datasource db {
 }
 
 model User {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  email              String   @unique
+  password           String
+  firstName          String
+  lastName           String
+  role               String   @default("user")
+  state              String?
+  ba_id              String   @unique // ✅ make this required if you want strong relation
+  brandAmbassador    BrandAmbassadorId @relation(fields: [ba_id], references: [ba_id])
+  createdAt          DateTime @default(now())
+}
+
+model BrandAmbassadorId {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
-  password  String
-  firstName String
-  lastName  String
-  role      String   @default("user") 
+  ba_id     String   @unique
+  used      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  user      User?
 }

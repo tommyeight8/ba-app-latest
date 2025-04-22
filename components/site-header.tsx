@@ -6,6 +6,7 @@ import {
   IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
+import { usePathname } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -38,6 +39,9 @@ export function SiteHeader({
   const userName = `${session?.user.firstName} ${session?.user.lastName}`;
   const userEmail = session?.user.email;
 
+  const pathname = usePathname();
+  const pageHeader = pathname.split("/dashboard/")[1];
+
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });
   };
@@ -50,7 +54,7 @@ export function SiteHeader({
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">Contacts</h1>
+        <h1 className="text-base font-medium capitalize">{pageHeader}</h1>
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

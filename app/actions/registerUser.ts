@@ -15,29 +15,47 @@ export const registerUser = async (newUser: UserSignupValues) => {
       return { error: errorMessage };
     }
 
-    const { email, password, firstName, lastName, role } = validateInput.data;
+    const { email, password, firstName, lastName, role, state, ba_id } =
+      validateInput.data;
 
-    const existingStaff = await prisma.user.findUnique({ where: { email } });
-    if (existingStaff)
+    if (!ba_id) return { error: "BA ID is required." };
+
+    const cleanedBaId = ba_id.trim();
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser)
       return { error: "A user with this email already exists." };
 
-    const hashedPassword = await bcrypt.hash(password, 10); // ✅ now hashes the passed-in password
+    const matchingBA = await prisma.brandAmbassadorId.findUnique({
+      where: { ba_id: cleanedBaId },
+    });
 
-    const newUserEntry = await prisma.user.create({
+    if (!matchingBA) return { error: "Invalid BA ID." };
+    if (matchingBA.used) return { error: "This BA ID has already been used." };
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.create({
       data: {
         email,
+        password: hashedPassword,
         firstName,
         lastName,
-        password: hashedPassword,
         role,
-        createdAt: new Date(),
+        state,
+        ba_id: cleanedBaId, // ✅ safe to use now
       },
+    });
+
+    await prisma.brandAmbassadorId.update({
+      where: { id: matchingBA.id },
+      data: { used: true },
     });
 
     return { success: true };
   } catch (error) {
     const errorMessage = getErrorMessage(error);
-    console.error("Unexpected error during registerStaff:", errorMessage);
+    console.error("Unexpected error during registerUser:", errorMessage);
     return { error: errorMessage };
   }
 };

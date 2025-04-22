@@ -5,10 +5,15 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { NavMain } from "@/components/nav-main";
 import { SiteHeader } from "@/components/site-header";
-import { IconClipboardList, IconHome2, IconUsers } from "@tabler/icons-react";
+import {
+  IconClipboardList,
+  IconHome2,
+  IconUsers,
+  IconApps,
+} from "@tabler/icons-react";
 import { useState, useTransition } from "react";
-import { Providers } from "@/components/Providers";
-import { SearchProvider } from "@/contexts/SearchContext";
+// import { Providers } from "@/components/Providers";
+// import { SearchProvider } from "@/contexts/SearchContext";
 
 export default function DashboardLayout({
   children,
@@ -22,6 +27,7 @@ export default function DashboardLayout({
     { title: "Dashboard", url: "/dashboard", icon: IconHome2 },
     { title: "Tasks", url: "/dashboard/tasks", icon: IconClipboardList },
     { title: "Team", url: "/dashboard/team", icon: IconUsers },
+    { title: "Admin", url: "/dashboard/admin", icon: IconApps },
   ];
 
   const runSearch = () => {

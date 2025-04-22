@@ -11,7 +11,7 @@
 
 // type SearchType = "company" | "postalCode" | "city";
 
-// type SearchContextType = {
+// type AdminSearchContextType = {
 //   query: string;
 //   setQuery: (val: string) => void;
 //   isPending: boolean;
@@ -27,15 +27,21 @@
 //   setAfter: (val: string | null) => void;
 // };
 
-// const SearchContext = createContext<SearchContextType | undefined>(undefined);
+// const AdminSearchContext = createContext<AdminSearchContextType | undefined>(
+//   undefined
+// );
 
-// export const SearchProvider = ({ children }: { children: React.ReactNode }) => {
+// export const AdminSearchProvider = ({
+//   children,
+// }: {
+//   children: React.ReactNode;
+// }) => {
 //   const [query, setQuery] = useState("");
 //   const [contacts, setContacts] = useState<HubSpotContact[]>([]);
 //   const [isSearching, setIsSearching] = useState(false);
 //   const [isPending, startTransition] = useTransition();
 //   const [after, setAfter] = useState<string | null>(null);
-//   const [searchType, setSearchType] = useState<SearchType>("company"); // ✅ Fix: move here
+//   const [searchType, setSearchType] = useState<SearchType>("company");
 
 //   const runSearch = async () => {
 //     if (query.length < 2) return;
@@ -58,7 +64,7 @@
 
 //       setContacts(res.results);
 //       setAfter(res.paging ?? null);
-//       setIsSearching(false); // ✅ reset
+//       setIsSearching(false);
 //     });
 //   };
 
@@ -71,7 +77,7 @@
 //   };
 
 //   return (
-//     <SearchContext.Provider
+//     <AdminSearchContext.Provider
 //       value={{
 //         query,
 //         setQuery,
@@ -89,14 +95,16 @@
 //       }}
 //     >
 //       {children}
-//     </SearchContext.Provider>
+//     </AdminSearchContext.Provider>
 //   );
 // };
 
-// export const useSearchContext = () => {
-//   const context = useContext(SearchContext);
+// export const useAdminSearchContext = () => {
+//   const context = useContext(AdminSearchContext);
 //   if (!context) {
-//     throw new Error("useSearchContext must be used within a SearchProvider");
+//     throw new Error(
+//       "useAdminSearchContext must be used within an AdminSearchProvider"
+//     );
 //   }
 //   return context;
 // };

@@ -216,7 +216,45 @@ async function searchContacts(
   };
 }
 
-export async function fetchHubSpotContactsPaginated(limit = 12, after = "") {
+// export async function fetchHubSpotContactsPaginated(limit = 10, after = "") {
+//   const props = [
+//     "firstname",
+//     "lastname",
+//     "email",
+//     "company",
+//     "phone",
+//     "address",
+//     "city",
+//     "state",
+//     "zip",
+//     "hs_lead_status", // <-- explicitly request
+//     "l2_lead_status",
+//   ];
+
+//   const url = `${baseUrl}/crm/v3/objects/contacts?limit=${limit}${
+//     after ? `&after=${after}` : ""
+//   }&properties=${props.join(",")}`;
+
+//   const response = await fetch(url, {
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//       "Content-Type": "application/json",
+//     },
+//   });
+
+//   if (!response.ok) {
+//     throw new Error("Failed to fetch paginated contacts");
+//   }
+
+//   const data = await response.json();
+
+//   return {
+//     results: data.results,
+//     paging: data.paging?.next?.after ?? null,
+//   };
+// }
+
+export async function fetchHubSpotContactsPaginated(limit = 10, after = "") {
   const props = [
     "firstname",
     "lastname",
@@ -280,5 +318,3 @@ export async function fetchHubSpotContactsTotalCount(): Promise<number> {
 
   return data.total ?? 0;
 }
-
-///////////////////////////// new search

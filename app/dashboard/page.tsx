@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState, startTransition } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ContactCardGrid } from "@/components/ContactCardList";
-import { EditContactModal } from "@/components/EditContactModal";
-import { PaginationControls } from "@/components/PaginationControl";
+import { useEffect, useState } from "react";
 import {
   fetchHubSpotContactsPaginated,
   fetchHubSpotContactsTotalCount,
   searchContactsByCompany,
 } from "@/app/actions/actions";
-import { useSearchContext } from "@/contexts/SearchContext";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { ContactCardGrid } from "@/components/ContactCardList";
+import { EditContactModal } from "@/components/EditContactModal";
 import {
   Select,
   SelectContent,
@@ -18,167 +17,211 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { HubSpotContact } from "@/types/hubspot";
+import { searchContactsByStatus } from "@/app/actions/searchContactsByStatus";
+
+import { useContactList } from "@/context/ContactListContext";
 
 export default function DashboardPageContent() {
-  const [prevStack, setPrevStack] = useState<string[]>([]);
-  const [after, setAfter] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
-  const [lastNonSearchAfter, setLastNonSearchAfter] = useState<string>("");
-  const [loadingInitial, setLoadingInitial] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
-
-  const {
-    query,
-    setQuery,
-    runSearch,
-    isPending,
-    contacts,
-    setContacts,
-    isSearching,
-    setIsSearching,
-    loadInitialContacts,
-  } = useSearchContext();
-
   const pageSize = 12;
+  // const [contacts, setContacts] = useState<HubSpotContact[]>([]);
+  const [after, setAfter] = useState<string | null>(null);
+  const [cursors, setCursors] = useState<{ [page: number]: string | null }>({
+    1: "",
+  });
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [query, setQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  const loadContacts = (afterCursor = "") => {
-    startTransition(async () => {
-      try {
-        const res = await fetchHubSpotContactsPaginated(pageSize, afterCursor);
-        setContacts(res.results);
-        setAfter(res.paging);
-        setLastNonSearchAfter(afterCursor);
-        if (afterCursor && !prevStack.includes(afterCursor)) {
-          setPrevStack((prev) => [...prev, afterCursor]);
-        }
-      } catch (err) {
-        console.error("Pagination error", err);
+  const { contacts, setContacts, refetchContacts } = useContactList();
+
+  const fetchPage = async (pageNum: number, overrideStatus?: string) => {
+    setLoading(true);
+    try {
+      const cursor = cursors[pageNum] ?? "";
+
+      let res: {
+        results: HubSpotContact[];
+        paging?: string | null;
+        next?: string | null;
+      };
+
+      const activeStatus = overrideStatus ?? selectedStatus;
+      const isStatusFilter = activeStatus !== "all";
+      const isSearch = query.length >= 2;
+
+      if (isSearch) {
+        res = await searchContactsByCompany(query, cursor, pageSize);
+      } else if (isStatusFilter) {
+        res = await searchContactsByStatus(activeStatus, cursor, pageSize);
+      } else {
+        res = await fetchHubSpotContactsPaginated(pageSize, cursor);
       }
-    });
+
+      const data = res.results ?? [];
+      setContacts(data);
+
+      const nextCursor = res.paging ?? res.next ?? null;
+      setAfter(nextCursor);
+
+      if (nextCursor) {
+        setCursors((prev) => ({
+          ...prev,
+          [pageNum + 1]: nextCursor,
+        }));
+      }
+
+      setPage(pageNum);
+    } catch (err) {
+      console.error("Error fetching contacts:", err);
+    } finally {
+      setLoading(false);
+      setHasLoadedOnce(true);
+    }
+  };
+
+  const handleSearch = async () => {
+    setIsSearching(query.length >= 2);
+    setCursors({ 1: "" });
+    await fetchPage(1);
+  };
+
+  const handleStatusChange = async (val: string) => {
+    setSelectedStatus(val);
+    setCursors({ 1: "" });
+    await fetchPage(1, val); // ✅ explicitly pass the new value
   };
 
   useEffect(() => {
-    startTransition(async () => {
-      const count = await fetchHubSpotContactsTotalCount();
-      setTotalCount(count);
-    });
-  }, []);
-
-  useEffect(() => {
-    const loadContactsInitially = async () => {
-      setLoadingInitial(true);
-      await loadInitialContacts();
-      setLoadingInitial(false);
-    };
-    loadContactsInitially();
+    fetchHubSpotContactsTotalCount().then(setTotalCount);
+    fetchPage(1);
   }, []);
 
   useEffect(() => {
     if (query === "") {
       setIsSearching(false);
-      loadContacts(lastNonSearchAfter);
+      setCursors({ 1: "" });
+      fetchPage(1);
     }
   }, [query]);
 
-  const handleNextPage = () => {
-    if (!after) return;
-    if (isSearching) {
-      searchContactsByCompany(query, after).then((res) => {
-        setContacts(res.results);
-        setAfter(res.paging ?? null);
-        setPrevStack((prev) => [...prev, after]);
-      });
-    } else {
-      loadContacts(after);
-    }
+  // const handleClearSearch = async () => {
+  //   setQuery("");
+  //   setSelectedStatus("all");
+  //   setIsSearching(false);
+  //   setCursors({ 1: "" });
+  //   await fetchPage(1);
+  // };
+
+  const handleClearSearch = async () => {
+    setQuery("");
+    setIsSearching(false);
+    setCursors({ 1: "" });
+    await fetchPage(1);
   };
 
-  const handlePrevPage = () => {
-    const prev = [...prevStack];
-    prev.pop();
-    const prevCursor = prev.pop();
-    setPrevStack(prev);
-
-    if (isSearching) {
-      if (prevCursor) {
-        searchContactsByCompany(query, prevCursor).then((res) => {
-          setContacts(res.results);
-          setAfter(res.paging ?? null);
-        });
-      } else {
-        runSearch();
-      }
-    } else {
-      if (prevCursor) loadContacts(prevCursor);
-      else loadContacts();
-    }
+  const handleClearStatus = async () => {
+    setSelectedStatus("all");
+    setCursors({ 1: "" });
+    await fetchPage(1, "all"); // explicitly tell fetchPage to reset filter
   };
-
-  // 👇 Filter when status changes
-  useEffect(() => {
-    if (selectedStatus === "all") {
-      setContacts(contacts);
-    } else {
-      const filtered = contacts.filter(
-        (c) => c.properties.l2_lead_status === selectedStatus
-      );
-      setContacts(filtered);
-    }
-  }, [selectedStatus, contacts]);
 
   return (
-    <main className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto">
-      {isPending || loadingInitial ? (
+    <main className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
+      {/* Search & Filter */}
+
+      <div className="flex flex-col md:flex-row items-center gap-2 w-full justify-between">
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Select value={selectedStatus} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending visit">Pending Visit</SelectItem>
+              <SelectItem value="visit requested by rep">
+                Visit Requested by Rep
+              </SelectItem>
+              <SelectItem value="dropped off">Dropped Off</SelectItem>
+              <SelectItem value="none">No status yet</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Clear Status */}
+          {selectedStatus !== "all" && (
+            <Button variant="outline" onClick={handleClearStatus}>
+              Clear Status
+            </Button>
+          )}
+        </div>
+        <div className="flex gap-2 w-1/2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Search store"
+            className="w-full max-w-md"
+          />
+
+          {query && (
+            <Button variant="outline" onClick={handleClearSearch}>
+              Clear
+            </Button>
+          )}
+
+          <Button onClick={handleSearch}>Search</Button>
+        </div>
+      </div>
+
+      {/* Content */}
+      {loading && !hasLoadedOnce ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {[...Array(12)].map((_, i) => (
+          {[...Array(pageSize)].map((_, i) => (
             <div
               key={i}
               className="rounded-lg border p-4 space-y-2 animate-pulse bg-white shadow-sm"
             >
-              <div className="h-4 w-1/2 bg-muted rounded" />
-              <div className="h-3 w-3/4 bg-muted/60 rounded" />
-              <div className="h-3 w-2/3 bg-muted/60 rounded" />
-              <div className="h-3 w-full bg-muted/60 rounded" />
+              <div className="h-8 w-1/2 bg-muted rounded" />
+              <div className="h-6 w-3/4 bg-muted/60 rounded" />
+              <div className="h-6 w-2/3 bg-muted/60 rounded" />
+              <div className="h-6 w-full bg-muted/60 rounded" />
             </div>
           ))}
         </div>
-      ) : contacts.length === 0 ? (
-        <div className="text-center text-muted-foreground py-10">
-          No contacts found.
-        </div>
       ) : (
         <>
-          {/* Status Filter */}
-          <div className="w-full max-w-xs">
-            <Select
-              value={selectedStatus}
-              onValueChange={(val) => setSelectedStatus(val)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Status</SelectItem>
-                <SelectItem value="pending visit">Pending Visit</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="dropped off">Dropped Off</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {!loading && hasLoadedOnce && contacts.length === 0 && (
+            <div className="text-center text-muted-foreground py-10">
+              No contacts found.
+            </div>
+          )}
 
           <ContactCardGrid contacts={contacts} />
           <EditContactModal />
-
-          {!isSearching && (
-            <PaginationControls
-              page={prevStack.length + 1}
-              pageCount={undefined}
-              onNext={handleNextPage}
-              onPrev={handlePrevPage}
-              hasNext={!!after}
-            />
-          )}
+          <div className="ml-auto flex items-center gap-4 text-sm">
+            <Button
+              onClick={() => fetchPage(page - 1)}
+              disabled={page <= 1 || loading}
+              className="w-6 h-6"
+            >
+              <ArrowLeft />
+            </Button>
+            <span className="text-gray-400">Page {page}</span>
+            <Button
+              onClick={() => fetchPage(page + 1)}
+              disabled={!cursors[page + 1] || loading}
+              className="w-6 h-6"
+            >
+              <ArrowRight />
+            </Button>
+          </div>
         </>
       )}
     </main>

@@ -15,12 +15,12 @@ const statusMap: Record<
     textColor: "text-orange-400",
     borderColor: "border-orange-300",
   },
-  shipped: {
-    label: "Shipped",
-    dotColor: "bg-blue-300",
-    bgColor: "bg-blue-50",
-    textColor: "text-blue-400",
-    borderColor: "border-blue-300",
+  "visit requested by rep": {
+    label: "Visit requested by rep",
+    dotColor: "bg-red-300",
+    bgColor: "bg-red-50",
+    textColor: "text-red-400",
+    borderColor: "border-red-300",
   },
   "dropped off": {
     label: "Dropped Off",

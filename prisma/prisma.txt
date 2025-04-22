@@ -1,0 +1,18 @@
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      String   @default("user")
+  state     String?  // ✅ optional field
+  ba_id     String?  // ✅ optional field for HubSpot ID
+  createdAt DateTime @default(now())
+}
+
+model BrandAmbassadorId {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  ba_id     String   @unique
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

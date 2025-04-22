@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 
-import { useSearchContext } from "@/contexts/SearchContext";
+// import { useSearchContext } from "@/contexts/SearchContext";
 import Link from "next/link";
 
 export function NavMain({
@@ -33,13 +33,11 @@ export function NavMain({
 }) {
   const pathname = usePathname();
 
-  const { query, setQuery, runSearch, isPending } = useSearchContext();
-
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         {/* 🔍 Search Input + Button */}
-        <div className="relative flex items-center gap-2 w-full">
+        {/* <div className="relative flex items-center gap-2 w-full">
           <Input
             placeholder="Search store..."
             value={query}
@@ -48,7 +46,6 @@ export function NavMain({
             className="text-sm pr-10 focus:border-0 custom-selection"
           />
 
-          {/* ❌ Clear button inside the input */}
           {query && (
             <button
               type="button"
@@ -59,7 +56,6 @@ export function NavMain({
             </button>
           )}
 
-          {/* 🔍 Search trigger */}
           <Button
             size="icon"
             onClick={runSearch}
@@ -68,7 +64,7 @@ export function NavMain({
           >
             <IconSearch className="w-4 h-4 text-gray-500" />
           </Button>
-        </div>
+        </div> */}
         {/* ➕ Quick Create */}
         {/* <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
@@ -85,7 +81,7 @@ export function NavMain({
         <SidebarMenu className="mt-2">
           {items.map((item) => {
             const isActive = pathname === item.url; // or use `.startsWith(item.url)` if needed
-            console.log(pathname, item.url);
+            // console.log(pathname, item.url);
             return (
               <SidebarMenuItem key={item.title}>
                 <Link href={item.url}>
