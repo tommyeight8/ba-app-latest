@@ -86,7 +86,7 @@ export function EditContactModal() {
 
   const statusColors: Record<Status, string> = {
     "pending visit": "ring-orange-500 bg-orange-500",
-    "visit requested by rep": "ring-yellow-500 bg-yellow-500",
+    "visit requested by rep": "ring-red-300 bg-red-300",
     "dropped off": "ring-green-500 bg-green-500",
   };
 
