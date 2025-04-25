@@ -97,7 +97,7 @@ export default function DashboardPageContent() {
   const handleStatusChange = async (val: string) => {
     setSelectedStatus(val);
     setCursors({ 1: "" });
-    await fetchPage(page, val, query); // ✅ Don't reset page
+    await fetchPage(page, val, query); 
   };
 
   useEffect(() => {
