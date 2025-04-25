@@ -26,9 +26,10 @@ import { StatusBadge } from "@/components/StatusBadge";
 export default function ContactDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = use(params);
+  const { id } = params;
+
   const { contact, isLoading } = useContactDetail(id);
   const [isModalOpen, setModalOpen] = useState(false);
 

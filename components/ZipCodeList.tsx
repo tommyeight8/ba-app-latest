@@ -43,25 +43,26 @@ export function ZipCodeList() {
 
   return (
     <div className="p-4 border-t border-white/10">
-      <p className="mb-3 font-semibold text-sm">Zip Codes</p>
-      <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
-        {uniqueZips.map((zip) => {
-          const isActive = pathname === `/dashboard/zip-code/${zip}`;
-          return (
-            <Link
-              key={zip}
-              href={`/dashboard/zip-code/${zip}`}
-              className={`text-xs px-3 py-1 rounded-full hover:opacity-70 transition duration-200 ${
-                isActive
-                  ? "dark:bg-white dark:text-black bg-[#333] text-white font-semibold"
-                  : "bg-gray-200 dark:bg-[#333] dark:text-gray-300 hover:bg-gray-200 hover:text-black"
-              }`}
-            >
-              {zip}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+  <p className="mb-3 font-semibold text-sm">Zip Codes</p>
+  <div className="grid grid-cols-2 gap-2">
+    {uniqueZips.map((zip) => {
+      const isActive = pathname === `/dashboard/zip-code/${zip}`;
+      return (
+        <Link
+          key={zip}
+          href={`/dashboard/zip-code/${zip}`}
+          className={`text-xs w-full text-center px-3 py-1 rounded-full hover:opacity-70 transition duration-200 ${
+            isActive
+              ? "dark:bg-white dark:text-black bg-[#333] text-white font-semibold"
+              : "bg-gray-200 dark:bg-[#333] dark:text-gray-300 hover:bg-gray-200 hover:text-black"
+          }`}
+        >
+          {zip}
+        </Link>
+      );
+    })}
+  </div>
+</div>
+
   );
 }

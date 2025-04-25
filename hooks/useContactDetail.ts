@@ -1,7 +1,5 @@
-// hooks/useContactDetail.ts
 "use client";
 
-import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { HubSpotContact } from "@/types/hubspot";
 
@@ -12,15 +10,10 @@ const fetchContactById = async (id: string): Promise<HubSpotContact> => {
 };
 
 export function useContactDetail(id: string) {
-  const router = useRouter();
-  const state = (router as any)?.location?.state;
-  const fallback = state?.contact ?? null;
-
   const { data, error, isLoading, mutate } = useSWR(
-    `/api/contacts/${id}`,
+    id ? `/api/contacts/${id}` : null,
     () => fetchContactById(id),
     {
-      fallbackData: fallback,
       revalidateOnFocus: true,
     }
   );

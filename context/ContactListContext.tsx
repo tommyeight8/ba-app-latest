@@ -36,10 +36,17 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
   const [allZips, setAllZips] = useState<string[]>([]);
   const { data: session, status } = useSession();
 
-  const fetchZipsOnly = async () => {
+  const refetchContacts = async () => {
     if (!session?.user?.email) return;
+
     try {
-      const allRes = await fetchAllContactsByEmail(session.user.email);
+      const [paginatedRes, allRes] = await Promise.all([
+        fetchHubSpotContactsPaginated(12, "", session.user.email),
+        fetchAllContactsByEmail(session.user.email),
+      ]);
+
+      if (paginatedRes.results) setContacts(paginatedRes.results);
+
       const zipSet = new Set(
         allRes
           .map((c) => c.properties?.zip)
@@ -47,24 +54,25 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
       );
       setAllZips(Array.from(zipSet));
     } catch (err) {
-      console.error("Failed to fetch ZIPs:", err);
+      console.error("Failed to fetch contacts:", err);
     }
   };
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchZipsOnly();
+      refetchContacts();
     }
   }, [status]);
 
   return (
     <ContactListContext.Provider
-      value={{ contacts, setContacts, refetchContacts: fetchZipsOnly, allZips }}
+      value={{ contacts, setContacts, refetchContacts, allZips }}
     >
       {children}
     </ContactListContext.Provider>
   );
 }
+
 
 // export function ContactListProvider({ children }: { children: ReactNode }) {
 //   const [contacts, setContacts] = useState<HubSpotContact[]>([]);
