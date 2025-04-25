@@ -1,12 +1,20 @@
 import { z } from "zod";
 
+// export const UserSignupSchema = z.object({
+//   email: z.string().email(),
+//   password: z.string().min(6),
+//   firstName: z.string(),
+//   lastName: z.string(),
+//   state: z.string(),
+//   ba_id: z.string().min(1, "BA ID is required"),
+// });
+
 export const UserSignupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   firstName: z.string(),
   lastName: z.string(),
-  state: z.string().optional(),
-  ba_id: z.string().min(1, "BA ID is required"),
+  state: z.string(),
 });
 
 export type UserSignupValues = z.infer<typeof UserSignupSchema>;

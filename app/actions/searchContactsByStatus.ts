@@ -5,7 +5,8 @@ import { HubSpotContact } from "@/types/hubspot";
 export async function searchContactsByStatus(
   status: string,
   after = "",
-  limit = 12
+  limit = 12,
+  email?: string // <-- optional user email for filtering by ba_email
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
   const baseUrl = process.env.HUBSPOT_API_BASE;
   const token = process.env.HUBSPOT_ACCESS_TOKEN;
@@ -25,6 +26,15 @@ export async function searchContactsByStatus(
             value: status,
           },
         ];
+
+  // If email is passed, filter by ba_email too
+  if (email) {
+    filters.push({
+      propertyName: "ba_email",
+      operator: "EQ",
+      value: email,
+    });
+  }
 
   const response = await fetch(`${baseUrl}/crm/v3/objects/contacts/search`, {
     method: "POST",
@@ -50,6 +60,7 @@ export async function searchContactsByStatus(
         "zip",
         "hs_lead_status",
         "l2_lead_status",
+        "ba_email", // include for reference
       ],
       limit,
       after: after || undefined,

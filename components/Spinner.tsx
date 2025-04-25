@@ -1,6 +1,11 @@
 // components/ui/spinner.tsx
-export default function Spinner() {
+type Props = {
+  size: string;
+};
+export default function Spinner({ size = "4" }: Props) {
   return (
-    <div className="h-4 w-4 border-2 border-white border-t-transparent animate-spin rounded-full" />
+    <div
+      className={`h-${size} w-${size} border-2 border-white border-t-transparent animate-spin rounded-full`}
+    />
   );
 }

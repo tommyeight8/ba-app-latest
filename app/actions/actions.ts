@@ -143,9 +143,10 @@ export async function fetchAllContactFields(): Promise<HubSpotFieldsResult> {
 export async function searchContactsByCompany(
   company: string,
   after = "",
-  limit = 50
+  limit = 50,
+  email?: string
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  return searchContacts("company", company, after, limit);
+  return searchContacts("company", company, after, limit, email);
 }
 
 export async function searchContactsByPostalCode(
@@ -165,14 +166,32 @@ export async function searchContactsByCity(
 }
 
 async function searchContacts(
-  field: string,
+  property: string,
   value: string,
   after = "",
-  limit = 50
+  limit = 50,
+  email?: string
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  const url = `${baseUrl}/crm/v3/objects/contacts/search`;
+  const baseUrl = process.env.HUBSPOT_API_BASE;
+  const token = process.env.HUBSPOT_ACCESS_TOKEN;
 
-  const response = await fetch(url, {
+  const filters = [
+    {
+      propertyName: property,
+      operator: property === "company" ? "CONTAINS_TOKEN" : "EQ",
+      value: value.toLowerCase().trim(), // normalize input
+    },
+  ];
+
+  if (email) {
+    filters.push({
+      propertyName: "ba_email",
+      operator: "EQ",
+      value: email,
+    });
+  }
+
+  const response = await fetch(`${baseUrl}/crm/v3/objects/contacts/search`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -181,13 +200,7 @@ async function searchContacts(
     body: JSON.stringify({
       filterGroups: [
         {
-          filters: [
-            {
-              propertyName: field,
-              operator: "CONTAINS_TOKEN",
-              value,
-            },
-          ],
+          filters,
         },
       ],
       properties: [
@@ -202,7 +215,9 @@ async function searchContacts(
         "zip",
         "hs_lead_status",
         "l2_lead_status",
+        "ba_email",
       ],
+      sorts: [{ propertyName: "createdate", direction: "DESCENDING" }],
       limit,
       after: after || undefined,
     }),
@@ -216,7 +231,12 @@ async function searchContacts(
   };
 }
 
-export async function fetchHubSpotContactsPaginated(limit = 12, after = "") {
+// app/actions/actions.ts or wherever this is defined
+export async function fetchHubSpotContactsPaginated(
+  limit = 12,
+  after = "",
+  baEmail?: string
+) {
   const props = [
     "firstname",
     "lastname",
@@ -229,21 +249,41 @@ export async function fetchHubSpotContactsPaginated(limit = 12, after = "") {
     "zip",
     "hs_lead_status",
     "l2_lead_status",
+    "ba_email",
   ];
 
-  const url = `${baseUrl}/crm/v3/objects/contacts?limit=${limit}${
-    after ? `&after=${after}` : ""
-  }&properties=${props.join(",")}`;
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
+  const filters = baEmail
+    ? [
+        {
+          propertyName: "ba_email",
+          operator: "EQ",
+          value: baEmail,
+        },
+      ]
+    : [];
+
+  const body = {
+    filterGroups: filters.length ? [{ filters }] : [],
+    sorts: [{ propertyName: "createdate", direction: "DESCENDING" }],
+    properties: props,
+    limit,
+    after: after || undefined,
+  };
+
+  const res = await fetch(`${baseUrl}/crm/v3/objects/contacts/search`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
-    throw new Error(`HubSpot fetch error: ${res.statusText}`);
+    const text = await res.text();
+    throw new Error(`HubSpot search error: ${res.status} - ${text}`);
   }
 
   const data = await res.json();

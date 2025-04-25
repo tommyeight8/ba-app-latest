@@ -21,7 +21,6 @@ export async function fetchContactById(id: string) {
   const url = `${baseUrl}/crm/v3/objects/contacts/${id}?properties=${props.join(
     ","
   )}`;
-  console.log("Final URL:", url);
 
   const res = await fetch(
     `${baseUrl}/crm/v3/objects/contacts/${id}?properties=${props.join(",")}`,

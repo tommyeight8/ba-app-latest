@@ -10,6 +10,7 @@ import {
   IconHome2,
   IconUsers,
   IconApps,
+  IconNote,
 } from "@tabler/icons-react";
 import { useState, useTransition } from "react";
 // import { Providers } from "@/components/Providers";
@@ -25,9 +26,19 @@ export default function DashboardLayout({
 
   const navItems = [
     { title: "Dashboard", url: "/dashboard", icon: IconHome2 },
-    { title: "Tasks", url: "/dashboard/tasks", icon: IconClipboardList },
-    { title: "Team", url: "/dashboard/team", icon: IconUsers },
-    { title: "Admin", url: "/dashboard/admin", icon: IconApps },
+    // { title: "Tasks", url: "/dashboard/tasks", icon: IconClipboardList },
+    // { title: "Team", url: "/dashboard/team", icon: IconUsers },
+    // {
+    //   title: "Pending Visit",
+    //   url: "/dashboard/pending-visit",
+    //   icon: IconUsers,
+    // },
+    // {
+    //   title: "Visit Requested by Rep",
+    //   url: "/dashboard/visit-requested-by-rep",
+    //   icon: IconUsers,
+    // },
+    // { title: "Dropped Off", url: "/dashboard/dropped-off", icon: IconUsers },
   ];
 
   const runSearch = () => {

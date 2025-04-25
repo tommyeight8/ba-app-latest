@@ -10,6 +10,7 @@ import Link from "next/link";
 import { UserSignupSchema } from "@/lib/schemas";
 import Image from "next/image";
 import { User } from "lucide-react";
+import { usStates } from "@/lib/states";
 
 const AdminRegisterForm = () => {
   const ref = useRef<HTMLFormElement>(null);
@@ -19,7 +20,7 @@ const AdminRegisterForm = () => {
 
   const clientAction = async (event: React.FormEvent) => {
     event.preventDefault(); // Prevent form from submitting the default way
-    console.log("✅ Form submitted");
+
     setIsSubmitting(true);
 
     const formData = new FormData(ref.current!);
@@ -32,7 +33,6 @@ const AdminRegisterForm = () => {
         lastName: data.lastName,
         password: data.password,
         state: data.state,
-        ba_id: data.ba_id,
       };
 
       const validateInput = UserSignupSchema.safeParse(newAdmin);
@@ -116,11 +116,18 @@ const AdminRegisterForm = () => {
 
         <div>
           <label className="block font-medium text-white">State</label>
-          <input
-            type="text"
+          <select
             name="state"
             className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
-          />
+          >
+            <option value="">Select a state</option>
+            {usStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+
           {errors.state && <p className="text-red-400">{errors.state}</p>}
         </div>
 
@@ -134,19 +141,6 @@ const AdminRegisterForm = () => {
 
           {/* ✅ Hidden role input */}
           <input type="hidden" name="role" value="user" />
-
-          {errors.password && <p className="text-red-400">{errors.password}</p>}
-        </div>
-
-        <div>
-          <label className="block font-medium text-white">
-            Brand Aambassador Id
-          </label>
-          <input
-            type="text"
-            name="ba_id"
-            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
-          />
 
           {errors.password && <p className="text-red-400">{errors.password}</p>}
         </div>

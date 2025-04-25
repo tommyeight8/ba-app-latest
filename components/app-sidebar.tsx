@@ -11,6 +11,8 @@ import {
 import { IconInnerShadowTop } from "@tabler/icons-react";
 import { NavUser } from "@/components/nav-user";
 import Image from "next/image";
+import { ZipCodeList } from "./ZipCodeList";
+import Link from "next/link";
 
 export function AppSidebar({
   children,
@@ -20,14 +22,16 @@ export function AppSidebar({
 }) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader className="bg-[#1c1c1c] text-white">
-        <Image
-          src="/images/ba-logo-alt.png"
-          width={90}
-          height={50}
-          alt="logo"
-          className="invert-20"
-        />
+      <SidebarHeader className="">
+        <Link href={"/dashboard"}>
+          <Image
+            src="/images/ba-logo-alt.png"
+            width={90}
+            height={50}
+            alt="logo"
+            className="invert-30"
+          />
+        </Link>
         {/* <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -43,11 +47,12 @@ export function AppSidebar({
         </SidebarMenu> */}
       </SidebarHeader>
 
-      <SidebarContent className="bg-[#1c1c1c] text-white">
+      <SidebarContent className="">
         {children} {/* ← Render NavMain or anything else here */}
+        <ZipCodeList />
       </SidebarContent>
 
-      <SidebarFooter className="bg-[#1c1c1c] text-white">
+      <SidebarFooter className="">
         <NavUser
           user={{
             name: "Tom",

@@ -48,8 +48,6 @@ export default function AssignBaModal({
   const [users, setUsers] = useState<User[]>([]);
   const [baIds, setBaIds] = useState<string[]>([]);
 
-  console.log(selectedBaId);
-
   useEffect(() => {
     const fetchData = async () => {
       const userRes = await getBaUsers();
@@ -98,8 +96,6 @@ export default function AssignBaModal({
               const user = users.find((u) => u.id === val);
               if (user?.ba_id) {
                 setSelectedBaId(user.ba_id);
-
-                console.log(selectedBaId);
               }
             }}
           >

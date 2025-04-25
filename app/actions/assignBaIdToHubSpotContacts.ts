@@ -12,7 +12,6 @@ export async function assignBaIdToHubSpotContacts({
   userId: string;
   baId: string;
 }) {
-  console.log(contactIds, userId, baId);
   // 1. Fetch the user to confirm role + association
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return { success: false, message: "User not found" };

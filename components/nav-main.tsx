@@ -89,7 +89,8 @@ export function NavMain({
                     tooltip={item.title}
                     className={clsx(
                       "cursor-pointer",
-                      isActive && "bg-white text-black"
+                      isActive &&
+                        "bg-gray-200 dark:bg-white text-black dark:hover:text-black"
                     )}
                   >
                     {item.icon && <item.icon />}

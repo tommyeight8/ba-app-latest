@@ -7,6 +7,8 @@ import {
   searchContactsByCompany,
 } from "@/app/actions/actions";
 
+import { searchContactsByStatus } from "@/app/actions/searchContactsByStatus";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactCardGrid } from "@/components/ContactCardList";
 import { EditContactModal } from "@/components/EditContactModal";
@@ -21,63 +23,77 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { HubSpotContact } from "@/types/hubspot";
-import { searchContactsByStatus } from "@/app/actions/searchContactsByStatus";
 
 import { useContactList } from "@/context/ContactListContext";
+import { useSession } from "next-auth/react";
+
+// Consistent return type
+type PaginatedResult = {
+  results: HubSpotContact[];
+  next: string | null;
+};
 
 export default function DashboardPageContent() {
   const pageSize = 12;
-  // const [contacts, setContacts] = useState<HubSpotContact[]>([]);
-  const [after, setAfter] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<{ [page: number]: string | null }>({
     1: "",
   });
-  const [page, setPage] = useState(1);
+  const [after, setAfter] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [isSearching, setIsSearching] = useState(false);
+  const [contacts, setContacts] = useState<HubSpotContact[]>([]);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  const { contacts, setContacts, refetchContacts } = useContactList();
+  const { data: session, status } = useSession();
 
-  const fetchPage = async (pageNum: number, overrideStatus?: string) => {
+  const fetchPage = async (
+    pageNum: number,
+    overrideStatus?: string,
+    overrideQuery?: string
+  ) => {
+    if (!session?.user?.email) return;
     setLoading(true);
     try {
       const cursor = cursors[pageNum] ?? "";
-
-      let res: {
-        results: HubSpotContact[];
-        paging?: string | null;
-        next?: string | null;
-      };
-
       const activeStatus = overrideStatus ?? selectedStatus;
+      const activeQuery = overrideQuery ?? query;
+      const isSearch = activeQuery.length >= 2;
       const isStatusFilter = activeStatus !== "all";
-      const isSearch = query.length >= 2;
 
+      let res: PaginatedResult;
       if (isSearch) {
-        res = await searchContactsByCompany(query, cursor, pageSize);
+        const result = await searchContactsByCompany(
+          activeQuery,
+          cursor,
+          pageSize,
+          session.user.email
+        );
+        res = { results: result.results, next: result.paging ?? null };
       } else if (isStatusFilter) {
-        res = await searchContactsByStatus(activeStatus, cursor, pageSize);
+        const result = await searchContactsByStatus(
+          activeStatus,
+          cursor,
+          pageSize,
+          session.user.email
+        );
+        res = { results: result.results, next: result.paging ?? null };
       } else {
-        res = await fetchHubSpotContactsPaginated(pageSize, cursor);
+        res = await fetchHubSpotContactsPaginated(
+          pageSize,
+          cursor,
+          session.user.email
+        );
       }
 
-      const data = res.results ?? [];
-      setContacts(data);
-
-      const nextCursor = res.paging ?? res.next ?? null;
+      setContacts(res.results ?? []);
+      const nextCursor = res.next;
       setAfter(nextCursor);
-
       if (nextCursor) {
-        setCursors((prev) => ({
-          ...prev,
-          [pageNum + 1]: nextCursor,
-        }));
+        setCursors((prev) => ({ ...prev, [pageNum + 1]: nextCursor }));
       }
-
       setPage(pageNum);
     } catch (err) {
       console.error("Error fetching contacts:", err);
@@ -88,55 +104,35 @@ export default function DashboardPageContent() {
   };
 
   const handleSearch = async () => {
-    setIsSearching(query.length >= 2);
     setCursors({ 1: "" });
     await fetchPage(1);
+  };
+
+  const handleClearSearch = async () => {
+    setQuery("");
+    setSelectedStatus("all");
+    setCursors({ 1: "" });
+    setPage(1);
+    await fetchPage(1, "all", "");
   };
 
   const handleStatusChange = async (val: string) => {
     setSelectedStatus(val);
     setCursors({ 1: "" });
-    await fetchPage(1, val); // ✅ explicitly pass the new value
+    setPage(1);
+    await fetchPage(1, val);
   };
 
   useEffect(() => {
-    fetchHubSpotContactsTotalCount().then(setTotalCount);
-    fetchPage(1);
-  }, []);
-
-  useEffect(() => {
-    if (query === "") {
-      setIsSearching(false);
-      setCursors({ 1: "" });
+    if (status === "authenticated") {
+      fetchHubSpotContactsTotalCount().then(setTotalCount);
       fetchPage(1);
     }
-  }, [query]);
-
-  // const handleClearSearch = async () => {
-  //   setQuery("");
-  //   setSelectedStatus("all");
-  //   setIsSearching(false);
-  //   setCursors({ 1: "" });
-  //   await fetchPage(1);
-  // };
-
-  const handleClearSearch = async () => {
-    setQuery("");
-    setIsSearching(false);
-    setCursors({ 1: "" });
-    await fetchPage(1);
-  };
-
-  const handleClearStatus = async () => {
-    setSelectedStatus("all");
-    setCursors({ 1: "" });
-    await fetchPage(1, "all"); // explicitly tell fetchPage to reset filter
-  };
+  }, [status]);
 
   return (
-    <main className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
+    <div className="flex flex-col gap-6 p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
       {/* Search & Filter */}
-
       <div className="flex flex-col md:flex-row items-center gap-2 w-full justify-between">
         <div className="flex items-center gap-2 w-full md:w-auto">
           <Select value={selectedStatus} onValueChange={handleStatusChange}>
@@ -154,28 +150,25 @@ export default function DashboardPageContent() {
             </SelectContent>
           </Select>
 
-          {/* Clear Status */}
           {selectedStatus !== "all" && (
-            <Button variant="outline" onClick={handleClearStatus}>
+            <Button variant="outline" onClick={handleClearSearch}>
               Clear Status
             </Button>
           )}
         </div>
-        <div className="flex gap-2 w-1/2">
+        <div className="flex flex-1 md:justify-end gap-2">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search store"
-            className="w-full max-w-md"
+            className="w-full max-w-1/2"
           />
-
           {query && (
             <Button variant="outline" onClick={handleClearSearch}>
               Clear
             </Button>
           )}
-
           <Button onClick={handleSearch}>Search</Button>
         </div>
       </div>
@@ -186,7 +179,7 @@ export default function DashboardPageContent() {
           {[...Array(pageSize)].map((_, i) => (
             <div
               key={i}
-              className="rounded-lg border p-4 space-y-2 animate-pulse bg-white shadow-sm"
+              className="rounded-lg border p-6 space-y-2 animate-pulse bg-white dark:bg-[#333] shadow-sm"
             >
               <div className="h-8 w-1/2 bg-muted rounded" />
               <div className="h-6 w-3/4 bg-muted/60 rounded" />
@@ -202,7 +195,6 @@ export default function DashboardPageContent() {
               No contacts found.
             </div>
           )}
-
           <ContactCardGrid contacts={contacts} />
           <EditContactModal />
           <div className="ml-auto flex items-center gap-4 text-sm">
@@ -224,6 +216,6 @@ export default function DashboardPageContent() {
           </div>
         </>
       )}
-    </main>
+    </div>
   );
 }

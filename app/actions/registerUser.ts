@@ -4,6 +4,7 @@ import { UserSignupValues, UserSignupSchema } from "@/lib/schemas";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getErrorMessage } from "@/lib/getErrorMessage";
+import { syncBaEmailDropdown } from "./syncBaIdToHubSpot";
 
 export const registerUser = async (newUser: UserSignupValues) => {
   try {
@@ -15,23 +16,11 @@ export const registerUser = async (newUser: UserSignupValues) => {
       return { error: errorMessage };
     }
 
-    const { email, password, firstName, lastName, state, ba_id } =
-      validateInput.data;
-
-    if (!ba_id) return { error: "BA ID is required." };
-
-    const cleanedBaId = ba_id.trim();
+    const { email, password, firstName, lastName, state } = validateInput.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser)
       return { error: "A user with this email already exists." };
-
-    const matchingBA = await prisma.brandAmbassadorId.findUnique({
-      where: { ba_id: cleanedBaId },
-    });
-
-    if (!matchingBA) return { error: "Invalid BA ID." };
-    if (matchingBA.used) return { error: "This BA ID has already been used." };
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -42,14 +31,10 @@ export const registerUser = async (newUser: UserSignupValues) => {
         firstName,
         lastName,
         state,
-        ba_id: cleanedBaId, // This is all that's needed to create the relation
       },
     });
 
-    await prisma.brandAmbassadorId.update({
-      where: { id: matchingBA.id },
-      data: { used: true },
-    });
+    await syncBaEmailDropdown(email);
 
     return { success: true };
   } catch (error) {
