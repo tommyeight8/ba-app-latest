@@ -37,9 +37,9 @@ export function ContactCard({ contact }: { contact: HubSpotContact }) {
       <CardContent className="p-4 relative flex flex-col gap-1 h-full">
         <div
           className="flex items-center gap-2 text-lg font-semibold bg-gray-100 dark:bg-[#333]
-          dark:text-white text-black p-2 rounded-t-md"
+          dark:text-gray-200 text-black p-2 rounded-t-md"
         >
-          <span>{company ?? "-"}</span>
+          <span className="uppercase">{company ?? "-"}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Mail className="w-4 h-4" />
@@ -49,7 +49,7 @@ export function ContactCard({ contact }: { contact: HubSpotContact }) {
           <Phone className="w-4 h-4" />
           <span>{phone ?? "-"}</span>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="w-4 h-4" />
           <span>
             {address ?? "-"}, {city ?? "-"} {zip ?? "-"}

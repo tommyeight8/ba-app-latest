@@ -103,12 +103,26 @@ export function EditMeetingModal({
             <label className="text-sm font-medium text-muted-foreground">
               Outcome
             </label>
-            <Input
+            {/* <Input
               name="outcome"
               value={form.outcome}
               onChange={handleChange}
               placeholder="Outcome"
-            />
+            /> */}
+            <select
+              name="outcome"
+              value={form.outcome}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, outcome: e.target.value }))
+              }
+              className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
+            >
+              <option value="">Select an outcome</option>
+              <option value="SCHEDULED">Scheduled</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="NO_SHOW">No Show</option>
+              <option value="CANCELED">Canceled</option>
+            </select>
           </div>
 
           <Button onClick={handleUpdate} disabled={isSubmitting}>

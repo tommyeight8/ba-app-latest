@@ -15,7 +15,8 @@ import { fetchAllContactsByEmail } from "@/app/actions/fetchAllContactsByEmail";
 // Extend the context type to include allZips
 type ContactListContextType = {
   contacts: HubSpotContact[];
-  setContacts: (contacts: HubSpotContact[]) => void;
+  setContacts: React.Dispatch<React.SetStateAction<HubSpotContact[]>>;
+
   refetchContacts: () => Promise<void>;
   allZips: string[];
 };
@@ -72,7 +73,6 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
     </ContactListContext.Provider>
   );
 }
-
 
 // export function ContactListProvider({ children }: { children: ReactNode }) {
 //   const [contacts, setContacts] = useState<HubSpotContact[]>([]);

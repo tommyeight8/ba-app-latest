@@ -8,8 +8,8 @@ export async function updateContactIfMatch(
   contactId: string,
   updates: Record<string, string>
 ) {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+  const baseUrl = process.env.HUBSPOT_API_BASE!;
+  const token = process.env.HUBSPOT_ACCESS_TOKEN!;
 
   if (!baseUrl || !token) {
     throw new Error("Missing HubSpot API credentials");

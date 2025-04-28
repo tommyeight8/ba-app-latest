@@ -10,7 +10,7 @@ export default function FormSwitcher() {
 
   return (
     <>
-      <div className="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 w-full max-w-[500px]">
+      <div className="p-10 absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 w-full max-w-[500px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={formType}

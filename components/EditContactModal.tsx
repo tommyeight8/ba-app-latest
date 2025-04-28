@@ -1,31 +1,49 @@
+// ✅ This file includes full optimistic contact editing
+// for both Dashboard and Contact [id] page
+
 "use client";
 
+import { useEffect, useState } from "react";
+import { useContactEdit } from "@/context/ContactEditContext";
+import { fetchContactById } from "@/app/actions/fetchContactById";
+import { updateContactIfMatch } from "@/app/actions/updateContactByEmailandId";
+import { updateL2LeadStatus } from "@/app/actions/updateL2LeadStatus";
+import { toast } from "react-hot-toast";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useContactEdit } from "@/context/ContactEditContext";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { updateL2LeadStatus } from "@/app/actions/updateL2LeadStatus";
-import { fetchContactById } from "@/app/actions/fetchContactById";
-import { toast } from "react-hot-toast";
-import { IconArrowRight } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
 import { EditContactSkeleton } from "./EditContactSkeleton";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from "next/navigation";
+import { HubSpotContact } from "@/types/hubspot";
+import { IconArrowRight } from "@tabler/icons-react";
 
 type Status = "pending visit" | "visit requested by rep" | "dropped off";
 
 interface Props {
-  fetchPage: (pageNum: number) => Promise<void>;
-  page: number;
+  fetchPage?: (
+    pageNum: number,
+    status?: string,
+    query?: string,
+    optimisticUpdater?: (prev: HubSpotContact[]) => HubSpotContact[]
+  ) => Promise<void>;
+  page?: number;
+  showDetails: boolean;
+  refetchContact?: () => Promise<void | HubSpotContact | undefined>;
+  mutateContact?: (data?: HubSpotContact, shouldRevalidate?: boolean) => void;
 }
 
-export function EditContactModal({ fetchPage, page }: Props) {
+export function EditContactModal({
+  fetchPage,
+  page,
+  showDetails,
+  refetchContact,
+  mutateContact,
+}: Props) {
   const { contact, open, setOpen, setContact } = useContactEdit();
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
   const [loading, setLoading] = useState(false);
@@ -72,17 +90,59 @@ export function EditContactModal({ fetchPage, page }: Props) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const statuses: Status[] = ["pending visit", "visit requested by rep", "dropped off"];
-  const statusColors: Record<Status, string> = {
-    "pending visit": "ring-orange-400 bg-orange-400",
-    "visit requested by rep": "ring-red-400 bg-red-400",
-    "dropped off": "ring-green-400 bg-green-400",
+  const handleSubmit = async () => {
+    if (!contactId) return;
+    setIsSubmitting(true);
+
+    const updatedFields = {
+      company: form.StoreName,
+      email: form.email,
+      phone: form.phone,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      zip: form.zip,
+    };
+
+    mutateContact?.(
+      {
+        ...contact!,
+        properties: {
+          ...contact!.properties,
+          ...updatedFields,
+        },
+      },
+      false
+    );
+
+    const result = await updateContactIfMatch(contactId, updatedFields);
+    setIsSubmitting(false);
+
+    if (result.success) {
+      toast.success("Contact updated!");
+
+      if (fetchPage) {
+        fetchPage(page ?? 1, undefined, undefined, (prev) =>
+          prev.map((c) =>
+            c.id === contactId
+              ? { ...c, properties: { ...c.properties, ...updatedFields } }
+              : c
+          )
+        );
+      }
+
+      if (refetchContact) await refetchContact();
+      setOpen(false);
+    } else {
+      toast.error(result.message || "Update failed.");
+    }
   };
-  const statusTextColors: Record<Status, string> = {
-    "pending visit": "text-orange-400",
-    "visit requested by rep": "text-red-400",
-    "dropped off": "text-green-400",
-  };
+
+  const statuses: Status[] = [
+    "pending visit",
+    "visit requested by rep",
+    "dropped off",
+  ];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -103,9 +163,22 @@ export function EditContactModal({ fetchPage, page }: Props) {
                   >
                     {key}
                   </label>
-                  <Input id={key} name={key} value={value} onChange={handleChange} />
+                  <Input
+                    id={key}
+                    name={key}
+                    value={value}
+                    onChange={handleChange}
+                  />
                 </div>
               ))}
+
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="w-full mt-2"
+              >
+                {isSubmitting ? "Saving..." : "Save Contact"}
+              </Button>
 
               <div className="space-y-2 text-center p-4 rounded-lg">
                 <label className="text-sm text-muted-foreground block mb-2">
@@ -113,7 +186,10 @@ export function EditContactModal({ fetchPage, page }: Props) {
                 </label>
                 <div className="flex justify-center gap-6">
                   {statuses.map((status) => (
-                    <label key={status} className="flex items-center space-x-2 cursor-pointer">
+                    <label
+                      key={status}
+                      className="flex items-center space-x-2 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="l2_lead_status"
@@ -123,46 +199,71 @@ export function EditContactModal({ fetchPage, page }: Props) {
                           if (!contact?.id) return;
                           setSelectedStatus(status);
                           setIsSubmitting(true);
-                          const res = await updateL2LeadStatus(contact.id, status);
+
+                          mutateContact?.(
+                            {
+                              ...contact!,
+                              properties: {
+                                ...contact!.properties,
+                                l2_lead_status: status,
+                              },
+                            },
+                            false
+                          );
+
+                          const res = await updateL2LeadStatus(
+                            contact.id,
+                            status
+                          );
                           setIsSubmitting(false);
 
                           if (res.success) {
                             toast.success("L2 status updated");
-                            await fetchAndSetContact(contact.id);
-                            await fetchPage(page); // ✅ Refresh just the current page
+
+                            if (fetchPage) {
+                              fetchPage(
+                                page ?? 1,
+                                undefined,
+                                undefined,
+                                (prev) =>
+                                  prev.map((c) =>
+                                    c.id === contact.id
+                                      ? {
+                                          ...c,
+                                          properties: {
+                                            ...c.properties,
+                                            l2_lead_status: status,
+                                          },
+                                        }
+                                      : c
+                                  )
+                              );
+                            }
+
+                            if (refetchContact) await refetchContact();
                             setOpen(false);
                           } else {
                             toast.error(res.message || "Update failed");
                           }
                         }}
-                        className={`appearance-none h-4 w-4 rounded-full border border-gray-300 ring-2 ring-offset-2 ring-offset-transparent checked:border-transparent checked:ring-inset focus:outline-none transition ${
-                          selectedStatus === status
-                            ? statusColors[status]
-                            : "ring-transparent bg-transparent"
-                        }`}
                       />
-                      <span
-                        className={`text-sm capitalize ${
-                          selectedStatus === status ? `${statusTextColors[status]}` : ""
-                        }`}
-                      >
-                        {status}
-                      </span>
+                      <span className="text-sm capitalize">{status}</span>
                     </label>
                   ))}
                 </div>
               </div>
-
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  router.push(`/dashboard/contacts/${contactId}`);
-                }}
-                className="w-fit m-auto cursor-pointer flex items-center text-sm mt-4 justify-center text-green-400 group transition-all duration-200 ease-in-out"
-              >
-                Full Detail
-                <IconArrowRight className="group-hover:ml-2 transition-all duration-200" />
-              </button>
+              {showDetails && (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    router.push(`/dashboard/contacts/${contactId}`);
+                  }}
+                  className="w-fit m-auto cursor-pointer flex items-center text-sm mt-4 justify-center text-green-400 group transition-all duration-200 ease-in-out"
+                >
+                  Full Detail
+                  <IconArrowRight className="group-hover:ml-2 transition-all duration-200" />
+                </button>
+              )}
             </>
           )}
         </div>

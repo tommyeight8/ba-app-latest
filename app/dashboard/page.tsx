@@ -32,7 +32,7 @@ type PaginatedResult = {
 export default function DashboardPageContent() {
   const pageSize = 12;
   const [page, setPage] = useState(1);
-  const [cursors, setCursors] = useState<{ [page: number]: string | null }>({ 1: "" });
+  const [cursors, setCursors] = useState<Record<string, string | null>>({});
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [query, setQuery] = useState("");
@@ -42,36 +42,66 @@ export default function DashboardPageContent() {
   const { contacts, setContacts } = useContactList();
   const { data: session, status } = useSession();
 
+  const getCursorKey = (page: number, status: string, query: string) =>
+    `${page}-${status}-${query || "none"}`;
+
   const fetchPage = async (
-    pageNum = 1,
-    overrideStatus = selectedStatus,
-    overrideQuery = query
+    pageNum: number = 1,
+    overrideStatus: string = selectedStatus,
+    overrideQuery: string = query,
+    optimisticUpdater?: (prev: HubSpotContact[]) => HubSpotContact[] // <-- function, not array
   ) => {
     if (!session?.user?.email) return;
 
+    if (optimisticUpdater) {
+      setContacts((prev) => optimisticUpdater(prev));
+      setPage(pageNum);
+      return;
+    }
+
     setLoading(true);
     try {
-      const cursor = cursors[pageNum] ?? "";
-      const isSearch = overrideQuery.length >= 2;
-      const isStatusFilter = overrideStatus !== "all";
+      const cursorKey = getCursorKey(pageNum, overrideStatus, overrideQuery);
+      const cursor = cursors[cursorKey] ?? "";
 
       let res: PaginatedResult;
-
-      if (isSearch) {
-        const result = await searchContactsByCompany(overrideQuery, cursor, pageSize, session.user.email);
+      if (overrideQuery.length >= 2) {
+        const result = await searchContactsByCompany(
+          overrideQuery,
+          cursor,
+          pageSize,
+          session.user.email
+        );
         res = { results: result.results, next: result.paging ?? null };
-      } else if (isStatusFilter) {
-        const result = await searchContactsByStatus(overrideStatus, cursor, pageSize, session.user.email);
+      } else if (overrideStatus !== "all") {
+        const result = await searchContactsByStatus(
+          overrideStatus,
+          cursor,
+          pageSize,
+          session.user.email
+        );
         res = { results: result.results, next: result.paging ?? null };
       } else {
-        res = await fetchHubSpotContactsPaginated(pageSize, cursor, session.user.email);
+        res = await fetchHubSpotContactsPaginated(
+          pageSize,
+          cursor,
+          session.user.email
+        );
       }
 
       setContacts(res.results ?? []);
       const nextCursor = res.next;
-      if (nextCursor) {
-        setCursors((prev) => ({ ...prev, [pageNum + 1]: nextCursor }));
-      }
+
+      setCursors((prev) => ({
+        ...prev,
+        [cursorKey]: cursor,
+        ...(nextCursor
+          ? {
+              [getCursorKey(pageNum + 1, overrideStatus, overrideQuery)]:
+                nextCursor,
+            }
+          : {}),
+      }));
 
       setPage(pageNum);
     } catch (err) {
@@ -83,21 +113,18 @@ export default function DashboardPageContent() {
   };
 
   const handleSearch = async () => {
-    setCursors({ 1: "" });
     await fetchPage(1, selectedStatus, query);
   };
 
   const handleClearSearch = async () => {
     setQuery("");
     setSelectedStatus("all");
-    setCursors({ 1: "" });
-    await fetchPage(1, "all", "");
+    await fetchPage(1, "all", ""); // ✅ Reset to page 1 after clearing
   };
 
   const handleStatusChange = async (val: string) => {
     setSelectedStatus(val);
-    setCursors({ 1: "" });
-    await fetchPage(page, val, query); 
+    await fetchPage(1, val, query); // ✅ Reset to page 1 after changing status
   };
 
   useEffect(() => {
@@ -107,28 +134,87 @@ export default function DashboardPageContent() {
     }
   }, [status]);
 
+  const hasNextPage = !!cursors[getCursorKey(page + 1, selectedStatus, query)];
+
   return (
     <div className="flex flex-col gap-6 p-1 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
       <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:justify-between">
         <div className="flex items-center gap-2">
           <Select value={selectedStatus} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full md:w-[200px]">
               <SelectValue placeholder="Filter by Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending visit">Pending Visit</SelectItem>
-              <SelectItem value="visit requested by rep">Visit Requested</SelectItem>
+              <SelectItem value="visit requested by rep">
+                Visit Requested
+              </SelectItem>
               <SelectItem value="dropped off">Dropped Off</SelectItem>
-              <SelectItem value="none">No Status</SelectItem>
             </SelectContent>
           </Select>
           {selectedStatus !== "all" && (
-            <Button variant="outline" onClick={handleClearSearch}>Clear Status</Button>
+            <Button variant="outline" onClick={handleClearSearch}>
+              Clear Status
+            </Button>
           )}
         </div>
 
-        <div className="flex w-full md:flex-1 justify-end gap-2">
+        <div className="relative w-full md:max-w-[50%]">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Search store"
+            className="w-full pr-20"
+          />
+
+          {query && (
+            <button
+              onClick={handleClearSearch}
+              className="cursor-pointer absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+              aria-label="Clear search"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+
+          <button
+            onClick={handleSearch}
+            className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white"
+            aria-label="Search"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        {/* <div className="flex w-full md:flex-1 justify-end gap-2">
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -136,33 +222,60 @@ export default function DashboardPageContent() {
             placeholder="Search store"
             className="w-full md:max-w-1/2"
           />
-          {query && <Button variant="outline" onClick={handleClearSearch}>Clear</Button>}
+          {query && (
+            <Button variant="outline" onClick={handleClearSearch}>
+              Clear
+            </Button>
+          )}
           <Button onClick={handleSearch}>Search</Button>
-        </div>
+        </div> */}
       </div>
 
       {loading && !hasLoadedOnce ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: pageSize }).map((_, i) => (
-            <Skeleton key={i} className="rounded-lg border p-6 space-y-2 h-36 bg-white dark:bg-[#333]" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[...Array(pageSize)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-lg border p-6 space-y-2 animate-pulse bg-white dark:bg-[#333] shadow-sm"
+            >
+              <div className="h-8 w-1/2 bg-muted rounded" />
+              <div className="h-6 w-3/4 bg-muted/60 rounded" />
+              <div className="h-6 w-2/3 bg-muted/60 rounded" />
+              <div className="h-6 w-full bg-muted/60 rounded" />
+            </div>
           ))}
         </div>
       ) : (
         <>
           {!loading && hasLoadedOnce && contacts.length === 0 ? (
-            <div className="text-center text-muted-foreground py-10">No contacts found.</div>
+            <div className="text-center text-muted-foreground py-10">
+              No contacts found.
+            </div>
           ) : (
             <ContactCardGrid contacts={contacts} />
           )}
 
-          <EditContactModal fetchPage={fetchPage} page={page} /> {/* ✅ Pass current page + fetch method */}
+          {/* Edit modal */}
+          <EditContactModal
+            fetchPage={fetchPage}
+            page={page}
+            showDetails={true}
+          />
 
           <div className="ml-auto flex items-center gap-4 text-sm">
-            <Button onClick={() => fetchPage(page - 1)} disabled={page <= 1 || loading} className="w-6 h-6">
+            <Button
+              onClick={() => fetchPage(page - 1)}
+              disabled={page <= 1 || loading}
+              className="w-6 h-6"
+            >
               <ArrowLeft />
             </Button>
             <span className="text-gray-400">Page {page}</span>
-            <Button onClick={() => fetchPage(page + 1)} disabled={!cursors[page + 1] || loading} className="w-6 h-6">
+            <Button
+              onClick={() => fetchPage(page + 1)}
+              disabled={!hasNextPage || loading}
+              className="w-6 h-6"
+            >
               <ArrowRight />
             </Button>
           </div>
