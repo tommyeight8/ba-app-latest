@@ -1,9 +1,11 @@
 import { getContactById } from "@/app/actions/getContactById";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic"; // 🛠 important for Vercel production
 
 export async function GET(
-  req: NextRequest, // ✅ Properly typed
-  { params }: { params: { id: string } } // ✅ Correct context typing
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   const { id } = params;
   const contact = await getContactById(id);
