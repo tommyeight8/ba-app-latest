@@ -9,13 +9,12 @@ import Link from "next/link";
 import { StatusBadgeContactDetails } from "@/components/StatusBadgeContactDetails";
 
 type Props = {
-  params: {
-    "zip-code": string;
-  };
+  params: Promise<{ "zip-code": string }>; // ✅ Promise version
 };
 
 export default async function ZipCodePage({ params }: Props) {
-  const zipCode = decodeURIComponent(params["zip-code"]);
+  const { "zip-code": zipCodeRaw } = await params; // ✅ await the params
+  const zipCode = decodeURIComponent(zipCodeRaw);
 
   const { results } = await searchContactsByPostalCode(zipCode);
 
