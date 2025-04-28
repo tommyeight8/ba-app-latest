@@ -1,13 +1,13 @@
 import { getContactById } from "@/app/actions/getContactById";
 import { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic"; // good!
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ id: string }> } // <-- notice Promise<>
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await context.params; // <-- must await
+  const { id } = await context.params;
   const contact = await getContactById(id);
 
   if (!contact) {
