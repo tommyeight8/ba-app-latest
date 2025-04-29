@@ -144,7 +144,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 setContextContact(contact);
                 setOpen(true);
               }}
-              className="text-sm mt-6 px-4 py-2 bg-transparent border border-zinc-900 hover:bg-zinc-900 hover:text-white 
+              className="text-sm mt-6 px-4 py-2 bg-transparent border border-black hover:bg-black hover:text-white 
               dark:border-gray-100 dark:hover:bg-gray-100 dark:hover:text-black rounded cursor-pointer transition duration-200 flex items-center gap-1"
             >
               <IconPencil size={18} /> Edit Contact

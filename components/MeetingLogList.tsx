@@ -42,18 +42,6 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
     }
   };
 
-  // const handleDelete = async (meetingId: string) => {
-  //   if (!confirm("Are you sure you want to delete this meeting log?")) return;
-  //   try {
-  //     const res = await fetch(`/api/meetings/delete/${meetingId}`, {
-  //       method: "DELETE",
-  //     });
-  //     if (!res.ok) throw new Error("Failed to delete");
-  //     await fetchMeetings();
-  //   } catch (err) {
-  //     console.error("❌ Error deleting meeting:", err);
-  //   }
-  // };
   const handleDeleteClick = (meetingId: string) => {
     setSelectedMeetingId(meetingId);
     setDeleteModalOpen(true);
@@ -139,8 +127,8 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
   if (loading) {
     const skeletons = expectedCount ?? 2;
     return (
-      <div className="flex gap-4 mt-4">
-        <div className="flex-1">
+      <div className="flex flex-col md:flex-row gap-4 mt-4">
+        <div className="w-full md:flex-1">
           {Array.from({ length: Math.ceil(skeletons / 2) }).map((_, i) => (
             <div
               key={i}
@@ -157,7 +145,7 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
             </div>
           ))}
         </div>
-        <div className="flex-1">
+        <div className="w-full m-d:flex-1">
           {Array.from({ length: Math.floor(skeletons / 2) }).map((_, i) => (
             <div
               key={i}
