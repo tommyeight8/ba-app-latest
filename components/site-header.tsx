@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { signOut, useSession } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
+import Link from "next/link";
 
 export function SiteHeader({
   user,
@@ -97,10 +98,12 @@ export function SiteHeader({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer">
-                  <IconUserCircle />
-                  Account
-                </DropdownMenuItem>
+                <Link href={"/dashboard/account"}>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <IconUserCircle />
+                    Account
+                  </DropdownMenuItem>
+                </Link>
                 <DropdownMenuItem className="cursor-pointer">
                   <IconNotification />
                   Notifications
