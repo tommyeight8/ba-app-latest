@@ -148,7 +148,7 @@ export function EditContactModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         autoFocus={false}
-        className="sm:max-w-lg w-full max-h-[90vh] overflow-hidden"
+        className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto"
       >
         <DialogHeader>
           <DialogTitle>Contact</DialogTitle>
@@ -187,7 +187,7 @@ export function EditContactModal({
                 <label className="text-sm text-muted-foreground block mb-2">
                   Samples Status
                 </label>
-                <div className="flex flex-col md:flex-row justify-center gap-6">
+                <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-6">
                   {statuses.map((status) => (
                     <label
                       key={status}

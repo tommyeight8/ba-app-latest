@@ -92,131 +92,129 @@ Next steps:`,
 
   return (
     <Form {...form}>
-      <div className="sm:max-w-lg w-full max-h-[90vh] overflow-y-auto">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="newFirstName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact's First Name</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="newFirstName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Contact's First Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Meeting Title</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Meeting Title</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="body"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Meeting Notes</FormLabel>
-                <FormControl>
-                  <Textarea rows={6} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="body"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Meeting Notes</FormLabel>
+              <FormControl>
+                <Textarea rows={6} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="meetingDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Meeting Date & Time</FormLabel>
-                <FormControl>
-                  <DatePicker
-                    selected={field.value}
-                    onChange={field.onChange}
-                    showTimeSelect
-                    timeIntervals={10}
-                    timeFormat="HH:mm"
-                    dateFormat="yyyy-MM-dd h:mm aa"
-                    className="w-full rounded border px-3 py-2 text-sm"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="meetingDate"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Meeting Date & Time</FormLabel>
+              <FormControl>
+                <DatePicker
+                  selected={field.value}
+                  onChange={field.onChange}
+                  showTimeSelect
+                  timeIntervals={10}
+                  timeFormat="HH:mm"
+                  dateFormat="yyyy-MM-dd h:mm aa"
+                  className="w-full rounded border px-3 py-2 text-sm"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="duration"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Duration</FormLabel>
-                <FormControl>
-                  <select
-                    className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
-                    {...field}
-                    value={field.value}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  >
-                    {[15, 30, 45, 60].map((min) => (
-                      <option key={min} value={min}>
-                        {min} minutes
-                      </option>
-                    ))}
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration</FormLabel>
+              <FormControl>
+                <select
+                  className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
+                  {...field}
+                  value={field.value}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                >
+                  {[15, 30, 45, 60].map((min) => (
+                    <option key={min} value={min}>
+                      {min} minutes
+                    </option>
+                  ))}
+                </select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="outcome"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Outcome</FormLabel>
-                <FormControl>
-                  <select
-                    className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
-                    {...field}
-                  >
-                    <option value="SCHEDULED">Scheduled</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="NO_SHOW">No Show</option>
-                    <option value="CANCELED">Canceled</option>
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="outcome"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Outcome</FormLabel>
+              <FormControl>
+                <select
+                  className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
+                  {...field}
+                >
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="NO_SHOW">No Show</option>
+                  <option value="CANCELED">Canceled</option>
+                </select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
-              <div className="flex items-center gap-1">
-                <Spinner size="4" />
-                Submitting
-              </div>
-            ) : (
-              "Log Meeting"
-            )}
-          </Button>
-        </form>
-      </div>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? (
+            <div className="flex items-center gap-1">
+              <Spinner size="4" />
+              Submitting
+            </div>
+          ) : (
+            "Log Meeting"
+          )}
+        </Button>
+      </form>
     </Form>
   );
 }

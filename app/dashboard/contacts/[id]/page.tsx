@@ -189,7 +189,10 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
       {/* Meeting Modal */}
       <Dialog open={isModalOpen} onOpenChange={setModalOpen}>
-        <DialogContent>
+        <DialogContent
+          autoFocus={false}
+          className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto"
+        >
           <DialogHeader className="mb-2">
             <DialogTitle>Log Meeting</DialogTitle>
           </DialogHeader>

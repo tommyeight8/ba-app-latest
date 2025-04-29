@@ -15,7 +15,7 @@ export default function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center"
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto max-h-[80vh]"
       onClick={onClose}
     >
       <div className="bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg w-full max-w-xl shadow-xl relative p-6 transition-colors duration-200">
