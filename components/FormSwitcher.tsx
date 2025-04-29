@@ -6,7 +6,7 @@ import { WavyBackground } from "./ui/wavy-background";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function FormSwitcher() {
-  const [formType, setFormType] = useState<"signup" | "login">("signup");
+  const [formType, setFormType] = useState<"signup" | "login">("login");
 
   return (
     <>

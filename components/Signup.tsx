@@ -6,48 +6,37 @@ import SubmitButton from "./SubmitButton";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import Link from "next/link";
-import { UserSignupSchema } from "@/lib/schemas";
-import Image from "next/image";
-import { User } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UserSignupSchema } from "@/lib/schemas"; // assume you extend this
 import { usStates } from "@/lib/states";
+import Image from "next/image";
+
+const SignupSchema = UserSignupSchema.extend({
+  secretKey: z.string().min(1, "Secret key is required"),
+});
+
+type SignupValues = z.infer<typeof SignupSchema>;
 
 const AdminRegisterForm = () => {
-  const ref = useRef<HTMLFormElement>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const clientAction = async (event: React.FormEvent) => {
-    event.preventDefault(); // Prevent form from submitting the default way
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting: formSubmitting },
+    reset,
+  } = useForm<SignupValues>({
+    resolver: zodResolver(SignupSchema),
+  });
 
+  const clientAction = async (data: SignupValues) => {
     setIsSubmitting(true);
 
-    const formData = new FormData(ref.current!);
-    const data = Object.fromEntries(formData.entries());
-
     try {
-      const newAdmin = {
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        password: data.password,
-        state: data.state,
-      };
-
-      const validateInput = UserSignupSchema.safeParse(newAdmin);
-
-      if (!validateInput.success) {
-        const fieldErrors = validateInput.error.issues.reduce((acc, issue) => {
-          acc[issue.path[0]] = issue.message;
-          return acc;
-        }, {} as { [key: string]: string });
-
-        setErrors(fieldErrors);
-        return;
-      }
-
-      const response = await registerUser(validateInput.data);
+      const response = await registerUser(data);
 
       if (response?.error) {
         toast.error(response.error);
@@ -56,11 +45,9 @@ const AdminRegisterForm = () => {
 
       const signInResponse = await signIn("credentials", {
         redirect: false,
-        email: validateInput.data.email,
-        password: validateInput.data.password,
+        email: data.email,
+        password: data.password,
       });
-
-      ref.current?.reset();
 
       if (signInResponse?.error) {
         toast.error("Sign-in failed. Please try logging in.");
@@ -73,51 +60,60 @@ const AdminRegisterForm = () => {
       toast.error("An unexpected error occurred. Please try again later.");
     } finally {
       setIsSubmitting(false);
+      reset();
     }
   };
 
   return (
     <div className="w-full max-w-md p-6 space-y-6 rounded-xl mx-auto border border-white/10 shadow-xl bg-white/10 backdrop-blur-md">
-      <h1 className="text-2xl font-bold text-center uppercase flex items-center justify-center gap-2 text-white">
-        <User size={24} /> BA Signup
+      <h1 className="text-2xl font-bold text-center uppercase text-white">
+        Signup
       </h1>
-      <form onSubmit={clientAction} className="space-y-4" ref={ref}>
+
+      <form onSubmit={handleSubmit(clientAction)} className="space-y-6">
         <div>
-          <label className="block font-medium text-white">Email</label>
+          {/* <label className="block font-medium text-white">Email</label> */}
           <input
             type="email"
-            name="email"
+            {...register("email")}
             className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            placeholder="Email"
           />
-          {errors.email && <p className="text-red-400">{errors.email}</p>}
-        </div>
-
-        <div>
-          <label className="block font-medium text-white">First name</label>
-          <input
-            type="text"
-            name="firstName"
-            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
-          />
-          {errors.firstName && (
-            <p className="text-red-400">{errors.firstName}</p>
+          {errors.email && (
+            <p className="text-red-400">{errors.email.message}</p>
           )}
         </div>
 
         <div>
-          <label className="block font-medium text-white">Last name</label>
+          {/* <label className="block font-medium text-white">First Name</label> */}
           <input
             type="text"
-            name="lastName"
+            {...register("firstName")}
             className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            placeholder="First name"
           />
-          {errors.lastName && <p className="text-red-400">{errors.lastName}</p>}
+          {errors.firstName && (
+            <p className="text-red-400">{errors.firstName.message}</p>
+          )}
         </div>
 
         <div>
-          <label className="block font-medium text-white">State</label>
+          {/* <label className="block font-medium text-white">Last Name</label> */}
+          <input
+            type="text"
+            {...register("lastName")}
+            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            placeholder="Last name"
+          />
+          {errors.lastName && (
+            <p className="text-red-400">{errors.lastName.message}</p>
+          )}
+        </div>
+
+        <div>
+          {/* <label className="block font-medium text-white">State</label> */}
           <select
-            name="state"
+            {...register("state")}
             className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
           >
             <option value="">Select a state</option>
@@ -127,25 +123,41 @@ const AdminRegisterForm = () => {
               </option>
             ))}
           </select>
-
-          {errors.state && <p className="text-red-400">{errors.state}</p>}
+          {errors.state && (
+            <p className="text-red-400">{errors.state.message}</p>
+          )}
         </div>
 
         <div>
-          <label className="block font-medium text-white">Password</label>
+          {/* <label className="block font-medium text-white">Password</label> */}
           <input
             type="password"
-            name="password"
+            {...register("password")}
             className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            placeholder="Password"
           />
-
-          {/* ✅ Hidden role input */}
-          <input type="hidden" name="role" value="user" />
-
-          {errors.password && <p className="text-red-400">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-400">{errors.password.message}</p>
+          )}
         </div>
 
-        <SubmitButton isSubmitting={isSubmitting} type="Sign up" />
+        <div>
+          {/* <label className="block font-medium text-white">BA Key</label> */}
+          <input
+            type="text"
+            {...register("secretKey")}
+            className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+            placeholder="BA Key"
+          />
+          {errors.secretKey && (
+            <p className="text-red-400">{errors.secretKey.message}</p>
+          )}
+        </div>
+
+        <SubmitButton
+          isSubmitting={isSubmitting || formSubmitting}
+          type="Sign up"
+        />
       </form>
 
       <Image

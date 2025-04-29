@@ -56,7 +56,7 @@ export function AppSidebar({
         <NavUser
           user={{
             name: "Tom",
-            email: "tom@example.com",
+            email: "default@vpr.com",
             avatar: "/avatars/shadcn.jpg",
           }}
         />

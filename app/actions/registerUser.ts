@@ -16,7 +16,20 @@ export const registerUser = async (newUser: UserSignupValues) => {
       return { error: errorMessage };
     }
 
-    const { email, password, firstName, lastName, state } = validateInput.data;
+    const { email, password, firstName, lastName, state, secretKey } =
+      validateInput.data;
+
+    // ✅ Check Secret Key (Server enforced)
+    const providedSecret = secretKey;
+    const serverSecret = process.env.BA_SECRET_KEY;
+
+    if (!serverSecret) {
+      return { error: "Server misconfiguration: Missing BA key." };
+    }
+
+    if (!providedSecret || providedSecret !== serverSecret) {
+      return { error: "Invalid Secret Key provided." };
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser)

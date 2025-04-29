@@ -1,4 +1,3 @@
-// components/ThemeToggle.tsx
 "use client";
 
 import { useTheme } from "next-themes";
@@ -15,22 +14,33 @@ export function ThemeToggle() {
   if (!mounted) return null;
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.button
-        key={theme} // forces re-render when theme changes
-        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="p-2 rounded transition cursor-pointer"
-        initial={{ rotate: 90, opacity: 0 }}
-        animate={{ rotate: 0, opacity: 1 }}
-        exit={{ rotate: -90, opacity: 0 }}
-        transition={{ duration: 0.25 }}
-      >
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="p-2 rounded transition cursor-pointer"
+    >
+      <AnimatePresence mode="wait" initial={false}>
         {theme === "dark" ? (
-          <Sun className="w-5 h-5 text-yellow-200" />
+          <motion.span
+            key="sun"
+            initial={{ rotate: 90, opacity: 0 }}
+            animate={{ rotate: 0, opacity: 1 }}
+            exit={{ rotate: -90, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Sun className="w-5 h-5 text-yellow-200" />
+          </motion.span>
         ) : (
-          <Moon className="w-5 h-5 text-blue-300" />
+          <motion.span
+            key="moon"
+            initial={{ rotate: -90, opacity: 0 }}
+            animate={{ rotate: 0, opacity: 1 }}
+            exit={{ rotate: 90, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Moon className="w-5 h-5 text-blue-300" />
+          </motion.span>
         )}
-      </motion.button>
-    </AnimatePresence>
+      </AnimatePresence>
+    </button>
   );
 }

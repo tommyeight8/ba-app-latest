@@ -74,18 +74,18 @@ const AdminLoginForm: React.FC = () => {
   return (
     <div className="items-center justify-center text-white">
       <div className="w-full max-w-md p-6 space-y-6 mx-auto rounded-xl border border-white/10 shadow-xl bg-white/10 backdrop-blur-md">
-        <h3 className="text-2xl font-semibold flex items-center justify-center gap-2 w-full uppercase">
-          <Lock />
+        <h3 className="text-2xl font-semibold w-full text-center uppercase">
           Login
         </h3>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label className="block font-medium text-white">Email</label>
+            {/* <label className="block font-medium text-white">Email</label> */}
             <input
               type="email"
               {...register("email")}
               className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+              placeholder="Email"
             />
             {errors.email && (
               <p className="text-red-400">{errors.email.message}</p>
@@ -93,11 +93,12 @@ const AdminLoginForm: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-medium text-white">Password</label>
+            {/* <label className="block font-medium text-white">Password</label> */}
             <input
               type="password"
               {...register("password")}
               className="w-full px-4 py-2 mt-1 border border-gray-700 bg-black/30 text-white rounded-md backdrop-blur-sm"
+              placeholder="Password"
             />
             {errors.password && (
               <p className="text-red-400">{errors.password.message}</p>
