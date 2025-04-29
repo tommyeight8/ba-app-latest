@@ -1,18 +1,38 @@
+// src/middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/"];
+const PUBLIC_PATHS = ["/", "/login", "/signup"];
 const secret = process.env.NEXTAUTH_SECRET!;
+
+function isPublicPath(pathname: string) {
+  return PUBLIC_PATHS.some(
+    (publicPath) =>
+      pathname === publicPath || pathname.startsWith(`${publicPath}/`)
+  );
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public routes
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  // ✅ Allow static assets and Next.js internals
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/static") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/api/public") // Allow public APIs if you have
+  ) {
     return NextResponse.next();
   }
 
+  // ✅ Allow public pages
+  if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  // 🔒 Require authentication for all other pages
   const token = await getToken({ req, secret });
 
   if (!token) {
@@ -26,12 +46,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all routes except:
-     * - static files
-     * - API routes
-     * - login/signup pages
-     */
-    "/((?!api|_next|static|favicon.ico|images|login|signup).*)",
+    "/((?!_next|static|favicon.ico|images|api).*)",
+    // ✅ Exclude _next, static assets, images, and all /api routes from middleware
   ],
 };
