@@ -31,27 +31,6 @@ export default function CanvasRevealEffectDemo3() {
       </div>
 
       <div className="h-screen flex flex-col lg:flex-row overflow-hidden items-center justify-center bg-black w-full gap-4 mx-auto px-8 relative">
-        {/* <AnimatePresence>
-          {hovered && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="h-full w-full absolute inset-0"
-            >
-              <CanvasRevealEffect
-                animationSpeed={5}
-                containerClassName="bg-transparent"
-                colors={[
-                  [59, 130, 246],
-                  [139, 92, 246],
-                ]}
-                opacities={[0.2, 0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.4, 1]}
-                dotSize={2}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence> */}
         <WavyBackground />
         <div className="absolute inset-0 [mask-image:radial-gradient(400px_at_center,white,transparent)] bg-black dark:bg-black/90" />
       </div>

@@ -23,6 +23,8 @@ import { StatusBadgeContactDetails } from "@/components/StatusBadgeContactDetail
 import { EditContactModal } from "@/components/EditContactModal";
 import { useContactEdit } from "@/context/ContactEditContext";
 import { UpdateStatusModal } from "@/components/UpdateStatusModal";
+import clsx from "clsx";
+import { useBrand } from "@/context/BrandContext";
 
 function getPastelColors(company?: string) {
   if (!company) {
@@ -61,6 +63,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const [isModalOpen, setModalOpen] = useState(false);
   const { setOpen, setContact: setContextContact } = useContactEdit();
   const logListRef = useRef<{ refetch: () => void }>(null);
+  const { brand } = useBrand();
 
   const { bg, text } = getPastelColors(contact?.properties?.company);
 
@@ -153,7 +156,12 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             {/* Log Meeting */}
             <button
               onClick={() => setModalOpen(true)}
-              className="text-sm mt-6 px-4 py-2 border hover:opacity-80 border-green-400 bg-green-400 text-black dark:text-green-400 dark:bg-transparent dark:hover:bg-green-400 dark:hover:text-black rounded cursor-pointer transition duration-200 flex items-center gap-1"
+              className={clsx(
+                "text-sm mt-6 px-4 py-2 border hover:opacity-80 rounded cursor-pointer transition duration-200 flex items-center gap-1",
+                brand === "skwezed"
+                  ? "boreder-[#009444] bg-[#009444] text-white"
+                  : "border-green-400 bg-green-400 text-black dark:text-green-400 dark:bg-transparent dark:hover:bg-green-400 dark:hover:text-black"
+              )}
             >
               <IconPlus size={18} /> Log Meeting
             </button>

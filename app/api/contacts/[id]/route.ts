@@ -1,5 +1,7 @@
 import { getContactById } from "@/app/actions/getContactById";
+import { useBrand } from "@/context/BrandContext";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +10,12 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const contact = await getContactById(id);
+  const cookieStore = await cookies(); // no `await` needed anymore in Next 15
+  const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
+    | "litto"
+    | "skwezed";
+
+  const contact = await getContactById(id, brand);
 
   if (!contact) {
     return NextResponse.json({ error: "Contact not found" }, { status: 404 });
@@ -16,17 +23,3 @@ export async function GET(
 
   return NextResponse.json(contact);
 }
-
-// import { getContactById } from "@/app/actions/getContactById";
-// import { NextResponse } from "next/server";
-
-// export async function GET(req: Request, context: { params: { id: string } }) {
-//   const { id } = context.params; // ✅ Not a Promise!
-//   const contact = await getContactById(id);
-
-//   if (!contact) {
-//     return NextResponse.json({ error: "Not found" }, { status: 404 });
-//   }
-
-//   return NextResponse.json(contact);
-// }

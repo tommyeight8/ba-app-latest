@@ -5,8 +5,10 @@ import {
   IconLogout,
   IconNotification,
   IconUserCircle,
+  IconClipboardText,
 } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -19,12 +21,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
-
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { signOut, useSession } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
-import Link from "next/link";
+import { useBrand } from "@/context/BrandContext"; // ✅ use your Brand context
+import { useTheme } from "next-themes";
 
 export function SiteHeader({
   user,
@@ -35,8 +37,10 @@ export function SiteHeader({
     avatar: string;
   };
 }) {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const { isMobile } = useSidebar();
+  const { brand, setBrand } = useBrand();
+  const { theme, setTheme } = useTheme();
 
   const userName = `${session?.user.firstName} ${session?.user.lastName}`;
   const userEmail = session?.user.email;
@@ -56,10 +60,10 @@ export function SiteHeader({
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        {/* <h1 className="text-base font-medium capitalize">{pageHeader}</h1> */}
+
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
-            <ThemeToggle />
+            {brand === "litto" && <ThemeToggle />}
 
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
@@ -74,6 +78,7 @@ export function SiteHeader({
                 <IconDotsVertical className="ml-auto size-4" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent
               className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
               side={isMobile ? "bottom" : "right"}
@@ -96,7 +101,9 @@ export function SiteHeader({
                   </div>
                 </div>
               </DropdownMenuLabel>
+
               <DropdownMenuSeparator />
+
               <DropdownMenuGroup>
                 <Link href={"/dashboard/account"}>
                   <DropdownMenuItem className="cursor-pointer">
@@ -104,15 +111,32 @@ export function SiteHeader({
                     Account
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuItem className="cursor-pointer">
-                  <IconNotification />
-                  Notifications
+
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => setBrand("litto")} // ✅ set LITTO
+                >
+                  <IconClipboardText />
+                  LITTO
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setTheme("light");
+                    setBrand("skwezed");
+                  }} // ✅ set SKWEZED
+                >
+                  <IconClipboardText />
+                  Skwezed
                 </DropdownMenuItem>
               </DropdownMenuGroup>
+
               <DropdownMenuSeparator />
+
               <DropdownMenuItem
                 className="cursor-pointer"
-                onClick={handleLogout} // ✅ logout handler here
+                onClick={handleLogout}
               >
                 <IconLogout />
                 Log out

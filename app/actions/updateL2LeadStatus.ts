@@ -1,9 +1,17 @@
+// app/actions/updateL2LeadStatus.ts
 "use server";
 
-const baseUrl = process.env.HUBSPOT_API_BASE;
-const token = process.env.HUBSPOT_ACCESS_TOKEN;
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials"; // ✅ central helper
 
-export async function updateL2LeadStatus(contactId: string, status: string) {
+export async function updateL2LeadStatus(
+  contactId: string,
+  status: string,
+  brand: "litto" | "skwezed" = "litto" // ✅ optional brand parameter
+) {
+  const { baseUrl, token } = getHubspotCredentials(brand);
+
+  console.log(brand, contactId);
+
   try {
     const response = await fetch(
       `${baseUrl}/crm/v3/objects/contacts/${contactId}`,
@@ -28,9 +36,22 @@ export async function updateL2LeadStatus(contactId: string, status: string) {
 
     return { success: true };
   } catch (error) {
+    // return {
+    //   success: false,
+    //   message: `Failed to update l2_lead_status: ${(error as Error).message}`,
+    // };
+    console.error("❌ Full Error Object:", error); // full stack trace if available
+
+    // If it's a Response object error, log more detail
+    if (error instanceof Error) {
+      console.error("❌ Error Message:", error.message);
+    }
+
     return {
       success: false,
-      message: `Failed to update l2_lead_status: ${error}`,
+      message: `Failed to update l2_lead_status: ${
+        error instanceof Error ? error.message : JSON.stringify(error)
+      }`,
     };
   }
 }

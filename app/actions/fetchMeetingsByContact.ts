@@ -1,9 +1,12 @@
-// app/actions/fetchMeetingsByContact.ts
 "use server";
 
-export async function fetchMeetingsByContact(contactId: string) {
-  const baseUrl = process.env.HUBSPOT_API_BASE!;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN!;
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials"; // ✅ import central helper
+
+export async function fetchMeetingsByContact(
+  contactId: string,
+  brand: "litto" | "skwezed"
+) {
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   const response = await fetch(
     `${baseUrl}/crm/v3/objects/meetings?associations=contact&properties=hs_meeting_title,hs_meeting_body,hs_timestamp,hs_meeting_outcome&limit=50`,

@@ -1,11 +1,13 @@
-// app/actions/getContactById.ts
+"use server";
+
 import { HubSpotContact } from "@/types/hubspot";
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials"; // ✅ import central helper
 
 export async function getContactById(
-  id: string
+  id: string,
+  brand: "litto" | "skwezed"
 ): Promise<HubSpotContact | null> {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   const properties = [
     "firstname",
@@ -40,27 +42,3 @@ export async function getContactById(
   const data = await res.json();
   return data;
 }
-
-// import { HubSpotContact } from "@/types/hubspot";
-
-// export async function getContactById(
-//   id: string
-// ): Promise<HubSpotContact | null> {
-//   const baseUrl = process.env.HUBSPOT_API_BASE;
-//   const token = process.env.HUBSPOT_ACCESS_TOKEN;
-
-//   const res = await fetch(
-//     `${baseUrl}/crm/v3/objects/contacts/${id}?properties=firstname,lastname,email,phone,company,address,city,zip`,
-//     {
-//       headers: {
-//         Authorization: `Bearer ${token}`,
-//         "Content-Type": "application/json",
-//       },
-//     }
-//   );
-
-//   if (!res.ok) return null;
-
-//   const data = await res.json();
-//   return data;
-// }

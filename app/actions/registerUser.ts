@@ -4,9 +4,12 @@ import { UserSignupValues, UserSignupSchema } from "@/lib/schemas";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getErrorMessage } from "@/lib/getErrorMessage";
-import { syncBaEmailDropdown } from "./syncBaIdToHubSpot";
+import { syncBaEmailDropdown } from "./syncBaIdToHubSpot"; // ✅ fixed import
 
-export const registerUser = async (newUser: UserSignupValues) => {
+export const registerUser = async (
+  newUser: UserSignupValues,
+  brand: "litto" | "skwezed"
+) => {
   try {
     const validateInput = UserSignupSchema.safeParse(newUser);
     if (!validateInput.success) {
@@ -47,7 +50,8 @@ export const registerUser = async (newUser: UserSignupValues) => {
       },
     });
 
-    await syncBaEmailDropdown(email);
+    // ✅ pass brand here
+    await syncBaEmailDropdown(brand, email);
 
     return { success: true };
   } catch (error) {

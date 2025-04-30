@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { HubSpotContact } from "@/types/hubspot";
+import { useBrand } from "@/context/BrandContext";
 
 type Props = {
   open: boolean;
@@ -34,6 +35,7 @@ export function UpdateStatusModal({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState(currentStatus);
+  const { brand } = useBrand();
 
   const handleUpdate = async () => {
     if (!contactId || !contact) return;
@@ -51,7 +53,7 @@ export function UpdateStatusModal({
       false
     );
 
-    const res = await updateL2LeadStatus(contactId, selected);
+    const res = await updateL2LeadStatus(contactId, selected, brand);
     setLoading(false);
 
     if (res.success) {

@@ -1,168 +1,176 @@
 "use server";
 
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 import {
   HubSpotContactResult,
   HubSpotFieldsResult,
   HubSpotContact,
 } from "@/types/hubspot";
 
-const baseUrl = process.env.HUBSPOT_API_BASE;
-const token = process.env.HUBSPOT_ACCESS_TOKEN;
+// const baseUrl = process.env.HUBSPOT_API_BASE;
+// const token = process.env.HUBSPOT_ACCESS_TOKEN;
 
-export const fetchContactProperties = async () => {
-  if (!baseUrl || !token) {
-    return {
-      success: false,
-      error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
-    };
-  }
+// const { baseUrl, token } = getHubspotCredentials(brand);
 
-  try {
-    const res = await fetch(`${baseUrl}/properties/v1/contacts/properties`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+// export const fetchContactProperties = async () => {
+//   if (!baseUrl || !token) {
+//     return {
+//       success: false,
+//       error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
+//     };
+//   }
 
-    if (!res.ok) {
-      const text = await res.text();
-      return { success: false, error: `Error ${res.status}: ${text}` };
-    }
+//   try {
+//     const res = await fetch(`${baseUrl}/properties/v1/contacts/properties`, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//       },
+//     });
 
-    const data = await res.json();
+//     if (!res.ok) {
+//       const text = await res.text();
+//       return { success: false, error: `Error ${res.status}: ${text}` };
+//     }
 
-    const fieldNames = data.map((prop: any) => prop.name);
+//     const data = await res.json();
 
-    return {
-      success: true,
-      fields: data,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: (error as Error).message,
-    };
-  }
-};
+//     const fieldNames = data.map((prop: any) => prop.name);
 
-export async function fetchHubSpotContacts(): Promise<HubSpotContactResult> {
-  if (!baseUrl || !token) {
-    return {
-      success: false,
-      error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
-    };
-  }
+//     return {
+//       success: true,
+//       fields: data,
+//     };
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error: (error as Error).message,
+//     };
+//   }
+// };
 
-  const props = [
-    "firstname",
-    "lastname",
-    "email",
-    "company",
-    "city",
-    "state",
-    "zip",
-    "address",
-    "phone", // <-- added!
-  ];
+// export async function fetchHubSpotContacts(): Promise<HubSpotContactResult> {
 
-  const fullUrl = `${baseUrl}/crm/v3/objects/contacts?limit=100&properties=${props.join(
-    ","
-  )}`;
+//   if (!baseUrl || !token) {
+//     return {
+//       success: false,
+//       error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
+//     };
+//   }
 
-  try {
-    const res = await fetch(fullUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+//   const props = [
+//     "firstname",
+//     "lastname",
+//     "email",
+//     "company",
+//     "city",
+//     "state",
+//     "zip",
+//     "address",
+//     "phone", // <-- added!
+//   ];
 
-    if (!res.ok) {
-      const text = await res.text();
-      return {
-        success: false,
-        error: `HubSpot error: ${res.status} - ${text}`,
-      };
-    }
+//   const fullUrl = `${baseUrl}/crm/v3/objects/contacts?limit=100&properties=${props.join(
+//     ","
+//   )}`;
 
-    const data = await res.json();
-    return {
-      success: true,
-      contacts: data.results,
-    };
-  } catch (err) {
-    return {
-      success: false,
-      error: (err as Error).message,
-    };
-  }
-}
+//   try {
+//     const res = await fetch(fullUrl, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//       },
+//     });
 
-export async function fetchAllContactFields(): Promise<HubSpotFieldsResult> {
-  if (!baseUrl || !token) {
-    return {
-      success: false,
-      error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
-    };
-  }
+//     if (!res.ok) {
+//       const text = await res.text();
+//       return {
+//         success: false,
+//         error: `HubSpot error: ${res.status} - ${text}`,
+//       };
+//     }
 
-  const fullUrl = `${baseUrl}/crm/v3/properties/contacts`;
+//     const data = await res.json();
+//     return {
+//       success: true,
+//       contacts: data.results,
+//     };
+//   } catch (err) {
+//     return {
+//       success: false,
+//       error: (err as Error).message,
+//     };
+//   }
+// }
 
-  try {
-    const response = await fetch(fullUrl, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+// export async function fetchAllContactFields(): Promise<HubSpotFieldsResult> {
+//   if (!baseUrl || !token) {
+//     return {
+//       success: false,
+//       error: "Missing HUBSPOT_API_BASE or HUBSPOT_ACCESS_TOKEN",
+//     };
+//   }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {
-        success: false,
-        error: `Error fetching contact fields: ${response.status} - ${errorText}`,
-      };
-    }
+//   const fullUrl = `${baseUrl}/crm/v3/properties/contacts`;
 
-    const data = await response.json();
+//   try {
+//     const response = await fetch(fullUrl, {
+//       method: "GET",
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         "Content-Type": "application/json",
+//       },
+//     });
 
-    return {
-      success: true,
-      fields: data.results,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: (error as Error).message,
-    };
-  }
-}
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       return {
+//         success: false,
+//         error: `Error fetching contact fields: ${response.status} - ${errorText}`,
+//       };
+//     }
+
+//     const data = await response.json();
+
+//     return {
+//       success: true,
+//       fields: data.results,
+//     };
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error: (error as Error).message,
+//     };
+//   }
+// }
 
 export async function searchContactsByCompany(
   company: string,
   after = "",
   limit = 50,
-  email?: string
+  email?: string,
+  brand: "litto" | "skwezed" = "litto"
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  return searchContacts("company", company, after, limit, email);
-}
-
-export async function searchContactsByPostalCode(
-  postalCode: string,
-  after = "",
-  limit = 50
-): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  return searchContacts("zip", postalCode, after, limit);
+  return searchContacts("company", company, after, limit, email, brand);
 }
 
 export async function searchContactsByCity(
   city: string,
   after = "",
-  limit = 50
+  limit = 50,
+  brand: "litto" | "skwezed" = "litto"
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  return searchContacts("city", city, after, limit);
+  return searchContacts("city", city, after, limit, brand);
+}
+
+export async function searchContactsByPostalCode(
+  postalCode: string,
+  after = "",
+  limit = 50,
+  brand: "litto" | "skwezed" = "litto"
+): Promise<{ results: HubSpotContact[]; paging: string | null }> {
+  console.log(brand, postalCode);
+  return searchContacts("zip", postalCode, after, limit, undefined, brand);
 }
 
 async function searchContacts(
@@ -170,10 +178,10 @@ async function searchContacts(
   value: string,
   after = "",
   limit = 50,
-  email?: string
+  email?: string,
+  brand: "litto" | "skwezed" = "litto"
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   const filters = [
     {
@@ -219,11 +227,12 @@ async function searchContacts(
       ],
       sorts: [{ propertyName: "createdate", direction: "DESCENDING" }],
       limit,
-      after: after || undefined,
+      ...(after ? { after } : {}),
     }),
   });
 
   const data = await response.json();
+  console.log("🔍 HubSpot search raw:", JSON.stringify(data, null, 2));
 
   return {
     results: data.results ?? [],
@@ -235,8 +244,28 @@ async function searchContacts(
 export async function fetchHubSpotContactsPaginated(
   limit = 12,
   after = "",
-  baEmail?: string
+  baEmail?: string,
+  brand: "litto" | "skwezed" = "litto"
 ) {
+  const { baseUrl, token } = getHubspotCredentials(brand);
+
+  // const props =
+  //   brand === "skwezed"
+  //     ? ["email", "firstname", "lastname"]
+  //     : [
+  //         "firstname",
+  //         "lastname",
+  //         "email",
+  //         "company",
+  //         "phone",
+  //         "address",
+  //         "city",
+  //         "state",
+  //         "zip",
+  //         "hs_lead_status",
+  //         "l2_lead_status",
+  //         "ba_email",
+  //       ];
   const props = [
     "firstname",
     "lastname",
@@ -295,30 +324,21 @@ export async function fetchHubSpotContactsPaginated(
 }
 
 // actions/actions.ts
-export async function fetchHubSpotContactsTotalCount(): Promise<number> {
-  const url = `${baseUrl}/crm/v3/objects/contacts?limit=1`; // Only need one item
+// export async function fetchHubSpotContactsTotalCount(): Promise<number> {
+//   const url = `${baseUrl}/crm/v3/objects/contacts?limit=1`; // Only need one item
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+//   const response = await fetch(url, {
+//     headers: {
+//       Authorization: `Bearer ${token}`,
+//       "Content-Type": "application/json",
+//     },
+//   });
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch total count");
-  }
+//   if (!response.ok) {
+//     throw new Error("Failed to fetch total count");
+//   }
 
-  const data = await response.json();
+//   const data = await response.json();
 
-  // HubSpot doesn't give a true total, but we can *approximate* using paging
-  // If your account has a Pro+ plan you may use `/search` with a blank filter + count
-
-  // OPTION 1: use paging.next.after + count fetched so far
-  // OPTION 2: if you really want a reliable total, use /search instead:
-  // `/crm/v3/objects/contacts/search` with filterGroups: [] and get `total` from response
-
-  return data.total ?? 0;
-}
-
-///////////////////////////// new search
+//   return data.total ?? 0;
+// }

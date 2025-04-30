@@ -21,6 +21,7 @@ import { EditContactSkeleton } from "./EditContactSkeleton";
 import { useRouter } from "next/navigation";
 import { HubSpotContact } from "@/types/hubspot";
 import { IconArrowRight } from "@tabler/icons-react";
+import { useBrand } from "@/context/BrandContext";
 
 type Status = "pending visit" | "visit requested by rep" | "dropped off";
 
@@ -48,6 +49,7 @@ export function EditContactModal({
   const [selectedStatus, setSelectedStatus] = useState<Status | null>(null);
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { brand } = useBrand();
 
   const [form, setForm] = useState({
     StoreName: "",
@@ -64,7 +66,7 @@ export function EditContactModal({
 
   const fetchAndSetContact = async (id: string) => {
     setLoading(true);
-    const updated = await fetchContactById(id);
+    const updated = await fetchContactById(id, brand);
     if (updated) {
       setContact(updated);
       setForm({
@@ -115,7 +117,7 @@ export function EditContactModal({
       false
     );
 
-    const result = await updateContactIfMatch(contactId, updatedFields);
+    const result = await updateContactIfMatch(contactId, updatedFields, brand);
     setIsSubmitting(false);
 
     if (result.success) {
@@ -216,7 +218,8 @@ export function EditContactModal({
 
                           const res = await updateL2LeadStatus(
                             contact.id,
-                            status
+                            status,
+                            brand
                           );
                           setIsSubmitting(false);
 

@@ -2,14 +2,15 @@
 "use server";
 
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/authOptions"; // adjust if needed
+import { authOptions } from "@/lib/authOptions";
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials"; // ✅ central helper
 
 export async function updateContactIfMatch(
   contactId: string,
-  updates: Record<string, string>
+  updates: Record<string, string>,
+  brand: "litto" | "skwezed" = "litto" // ✅ optional brand argument (default litto)
 ) {
-  const baseUrl = process.env.HUBSPOT_API_BASE!;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN!;
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   if (!baseUrl || !token) {
     throw new Error("Missing HubSpot API credentials");
@@ -47,7 +48,7 @@ export async function updateContactIfMatch(
     };
   }
 
-  // Perform the update
+  // ✅ Perform the update
   const updateRes = await fetch(
     `${baseUrl}/crm/v3/objects/contacts/${contactId}`,
     {

@@ -1,9 +1,10 @@
 "use server";
 
-const baseUrl = process.env.HUBSPOT_API_BASE;
-const token = process.env.HUBSPOT_ACCESS_TOKEN;
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
-export async function fetchContactById(id: string) {
+export async function fetchContactById(id: string, brand: "litto" | "skwezed") {
+  const { baseUrl, token } = getHubspotCredentials(brand);
+
   const props = [
     "firstname",
     "lastname",
@@ -22,17 +23,14 @@ export async function fetchContactById(id: string) {
     ","
   )}`;
 
-  const res = await fetch(
-    `${baseUrl}/crm/v3/objects/contacts/${id}?properties=${props.join(",")}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!res.ok) {
-    throw new Error("Failed to fetch contact by ID");
+    throw new Error(`Failed to fetch contact by ID: ${await res.text()}`);
   }
 
   const contact = await res.json();

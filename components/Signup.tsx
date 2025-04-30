@@ -12,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserSignupSchema } from "@/lib/schemas"; // assume you extend this
 import { usStates } from "@/lib/states";
 import Image from "next/image";
+import { useBrand } from "@/context/BrandContext";
 
 const SignupSchema = UserSignupSchema.extend({
   secretKey: z.string().min(1, "Secret key is required"),
@@ -22,6 +23,7 @@ type SignupValues = z.infer<typeof SignupSchema>;
 const AdminRegisterForm = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { brand } = useBrand();
 
   const {
     register,
@@ -36,7 +38,7 @@ const AdminRegisterForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await registerUser(data);
+      const response = await registerUser(data, brand);
 
       if (response?.error) {
         toast.error(response.error);

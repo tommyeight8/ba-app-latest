@@ -1,25 +1,32 @@
 // app/actions/syncBaEmailDropdown.ts
 "use server";
 
-const baseUrl = process.env.HUBSPOT_API_BASE!;
-const token = process.env.HUBSPOT_ACCESS_TOKEN!;
-const headers = {
-  Authorization: `Bearer ${token}`,
-  "Content-Type": "application/json",
-};
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials"; // ✅ import
 
-export async function syncBaEmailDropdown(email: string) {
+export async function syncBaEmailDropdown(
+  brand: "litto" | "skwezed",
+  email: string
+) {
+  const { baseUrl, token } = getHubspotCredentials(brand);
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+
   const propertyName = "ba_email";
 
   try {
-    const exists = await checkDropdownPropertyExists(propertyName);
+    const exists = await checkDropdownPropertyExists(
+      baseUrl,
+      headers,
+      propertyName
+    );
 
     if (!exists) {
-      await createDropdownProperty(propertyName); // No email passed here
+      await createDropdownProperty(baseUrl, headers, propertyName);
     }
 
-    // Always try to add the email — it will silently skip if it already exists
-    await addEmailAsDropdownOption(propertyName, email);
+    await addEmailAsDropdownOption(baseUrl, headers, propertyName, email);
 
     return { success: true };
   } catch (err) {
@@ -29,6 +36,8 @@ export async function syncBaEmailDropdown(email: string) {
 }
 
 async function checkDropdownPropertyExists(
+  baseUrl: string,
+  headers: HeadersInit,
   propertyName: string
 ): Promise<boolean> {
   const res = await fetch(
@@ -39,12 +48,16 @@ async function checkDropdownPropertyExists(
   );
 
   const json = await res.json();
-  console.log("📋 Property check result:", res.status, json); // <-- DEBUG
+  console.log("📋 Property check result:", res.status, json);
 
   return res.status !== 404;
 }
 
-async function createDropdownProperty(propertyName: string) {
+async function createDropdownProperty(
+  baseUrl: string,
+  headers: HeadersInit,
+  propertyName: string
+) {
   const res = await fetch(`${baseUrl}/crm/v3/properties/contacts`, {
     method: "POST",
     headers,
@@ -54,7 +67,7 @@ async function createDropdownProperty(propertyName: string) {
       type: "enumeration",
       fieldType: "select",
       groupName: "contactinformation",
-      options: [], // ⬅️ initially empty
+      options: [],
     }),
   });
 
@@ -66,8 +79,12 @@ async function createDropdownProperty(propertyName: string) {
   }
 }
 
-async function addEmailAsDropdownOption(propertyName: string, email: string) {
-  // First, get existing options
+async function addEmailAsDropdownOption(
+  baseUrl: string,
+  headers: HeadersInit,
+  propertyName: string,
+  email: string
+) {
   const res = await fetch(
     `${baseUrl}/crm/v3/properties/contacts/${propertyName}`,
     {
@@ -85,7 +102,6 @@ async function addEmailAsDropdownOption(propertyName: string, email: string) {
     return;
   }
 
-  // Append new email option
   const updatedOptions = [...property.options, { label: email, value: email }];
 
   const patchRes = await fetch(

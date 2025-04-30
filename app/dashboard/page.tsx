@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   fetchHubSpotContactsPaginated,
-  fetchHubSpotContactsTotalCount,
   searchContactsByCompany,
 } from "@/app/actions/actions";
 import { searchContactsByStatus } from "@/app/actions/searchContactsByStatus";
@@ -23,6 +22,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useContactList } from "@/context/ContactListContext";
 import { useSession } from "next-auth/react";
 import { HubSpotContact } from "@/types/hubspot";
+import { useBrand } from "@/context/BrandContext";
 
 type PaginatedResult = {
   results: HubSpotContact[];
@@ -33,13 +33,16 @@ export default function DashboardPageContent() {
   const pageSize = 12;
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<Record<string, string | null>>({});
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const { brand } = useBrand();
+  const [hasNext, setHasNext] = useState(false);
 
-  const { contacts, setContacts } = useContactList();
+  const { contacts, setContacts, loading, refetchContacts, setLoading } =
+    useContactList();
   const { data: session, status } = useSession();
 
   const getCursorKey = (page: number, status: string, query: string) =>
@@ -59,18 +62,21 @@ export default function DashboardPageContent() {
       return;
     }
 
-    setLoading(true);
+    setLoading(true); // 👈 START LOADING
+
     try {
       const cursorKey = getCursorKey(pageNum, overrideStatus, overrideQuery);
       const cursor = cursors[cursorKey] ?? "";
 
       let res: PaginatedResult;
+
       if (overrideQuery.length >= 2) {
         const result = await searchContactsByCompany(
           overrideQuery,
           cursor,
           pageSize,
-          session.user.email
+          session.user.email,
+          brand
         );
         res = { results: result.results, next: result.paging ?? null };
       } else if (overrideStatus !== "all") {
@@ -78,19 +84,22 @@ export default function DashboardPageContent() {
           overrideStatus,
           cursor,
           pageSize,
-          session.user.email
+          session.user.email,
+          brand
         );
         res = { results: result.results, next: result.paging ?? null };
       } else {
         res = await fetchHubSpotContactsPaginated(
           pageSize,
           cursor,
-          session.user.email
+          session.user.email,
+          brand
         );
       }
 
       setContacts(res.results ?? []);
       const nextCursor = res.next;
+      setHasNext((res.results?.length ?? 0) === pageSize);
 
       setCursors((prev) => ({
         ...prev,
@@ -107,7 +116,7 @@ export default function DashboardPageContent() {
     } catch (err) {
       console.error("Error fetching contacts:", err);
     } finally {
-      setLoading(false);
+      setLoading(false); // 👈 END LOADING
       setHasLoadedOnce(true);
     }
   };
@@ -129,12 +138,12 @@ export default function DashboardPageContent() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchHubSpotContactsTotalCount().then(setTotalCount);
-      fetchPage(1);
+      // TESTING
+      setContacts([]);
+      setCursors({});
+      fetchPage(1); // ✅ resets pagination and contact list for the new brand
     }
-  }, [status]);
-
-  const hasNextPage = !!cursors[getCursorKey(page + 1, selectedStatus, query)];
+  }, [brand, status]);
 
   return (
     <div className="flex flex-col gap-6 p-1 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
@@ -213,25 +222,10 @@ export default function DashboardPageContent() {
             </svg>
           </button>
         </div>
-
-        {/* <div className="flex w-full md:flex-1 justify-end gap-2">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Search store"
-            className="w-full md:max-w-1/2"
-          />
-          {query && (
-            <Button variant="outline" onClick={handleClearSearch}>
-              Clear
-            </Button>
-          )}
-          <Button onClick={handleSearch}>Search</Button>
-        </div> */}
       </div>
 
-      {loading && !hasLoadedOnce ? (
+      {/* {loading && !hasLoadedOnce ? ( */}
+      {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(pageSize)].map((_, i) => (
             <div
@@ -273,7 +267,7 @@ export default function DashboardPageContent() {
             <span className="text-gray-400">Page {page}</span>
             <Button
               onClick={() => fetchPage(page + 1)}
-              disabled={!hasNextPage || loading}
+              disabled={!hasNext || loading}
               className="w-6 h-6"
             >
               <ArrowRight />

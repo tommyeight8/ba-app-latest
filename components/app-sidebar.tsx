@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import {
   Sidebar,
@@ -13,6 +15,7 @@ import { NavUser } from "@/components/nav-user";
 import Image from "next/image";
 import { ZipCodeList } from "./ZipCodeList";
 import Link from "next/link";
+import { useBrand } from "@/context/BrandContext";
 
 export function AppSidebar({
   children,
@@ -20,39 +23,42 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & {
   children?: React.ReactNode;
 }) {
+  const { brand } = useBrand();
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader className="">
-        <Link href={"/dashboard"}>
-          <Image
-            src="/images/ba-logo-alt.png"
-            width={90}
-            height={50}
-            alt="logo"
-            className="invert-30"
-          />
+      <SidebarHeader className={`${brand === "skwezed" && "bg-[#009444]"} p-4`}>
+        <Link href={"/dashboard"} className="">
+          {brand === "litto" ? (
+            <Image
+              src="/images/litto-logo-blk.webp"
+              width={100}
+              height={50}
+              alt="logo"
+              className="dark:invert"
+              quality={100}
+            />
+          ) : (
+            <Image
+              src="/images/skwezed-logo.png"
+              width={100}
+              height={50}
+              alt="logo"
+              className=""
+              quality={100}
+            />
+          )}
         </Link>
-        {/* <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">VPR BBA</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu> */}
       </SidebarHeader>
 
-      <SidebarContent className="">
-        {children} {/* ← Render NavMain or anything else here */}
+      <SidebarContent
+        className={`${brand === "skwezed" && "bg-[#009444]"} gap-0`}
+      >
+        {children}
         <ZipCodeList />
       </SidebarContent>
 
-      <SidebarFooter className="">
+      <SidebarFooter className={`${brand === "skwezed" && "bg-[#009444]"}`}>
         <NavUser
           user={{
             name: "Tom",

@@ -21,6 +21,7 @@ import { logMeeting } from "@/app/actions/logMeeting";
 import Spinner from "@/components/Spinner";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { useBrand } from "@/context/BrandContext";
 
 const formSchema = z.object({
   newFirstName: z.string().min(1),
@@ -43,6 +44,7 @@ export function LogMeetingForm({
   onSuccess?: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
+  const { brand } = useBrand();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -70,6 +72,7 @@ Next steps:`,
 
     startTransition(() => {
       logMeeting({
+        brand,
         contactId,
         title: values.title,
         body: values.body,

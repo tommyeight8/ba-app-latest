@@ -6,6 +6,7 @@ module.exports = {
       colors: {
         softBlack: "#1C1C1C",
         charcoal: "#111111",
+        skwGreen: "#009444",
       },
     },
   },

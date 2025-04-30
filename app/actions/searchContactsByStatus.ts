@@ -1,15 +1,16 @@
 "use server";
 
 import { HubSpotContact } from "@/types/hubspot";
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
 export async function searchContactsByStatus(
   status: string,
   after = "",
   limit = 12,
-  email?: string // <-- optional user email for filtering by ba_email
+  email?: string,
+  brand: "litto" | "skwezed" = "litto" // 🔥 optional brand argument, default to litto
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  const baseUrl = process.env.HUBSPOT_API_BASE;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN;
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   const filters =
     status === "none"
@@ -27,7 +28,7 @@ export async function searchContactsByStatus(
           },
         ];
 
-  // If email is passed, filter by ba_email too
+  // If email is passed, add an extra filter
   if (email) {
     filters.push({
       propertyName: "ba_email",
@@ -60,7 +61,7 @@ export async function searchContactsByStatus(
         "zip",
         "hs_lead_status",
         "l2_lead_status",
-        "ba_email", // include for reference
+        "ba_email",
       ],
       limit,
       after: after || undefined,

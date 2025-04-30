@@ -128,7 +128,7 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
     const skeletons = expectedCount ?? 2;
     return (
       <div className="flex flex-col md:flex-row gap-4 mt-4">
-        <div className="w-full md:flex-1">
+        <div className="w-full md:w-1/2">
           {Array.from({ length: Math.ceil(skeletons / 2) }).map((_, i) => (
             <div
               key={i}
@@ -145,7 +145,7 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
             </div>
           ))}
         </div>
-        <div className="w-full m-d:flex-1">
+        <div className="w-full md:w-1/2">
           {Array.from({ length: Math.floor(skeletons / 2) }).map((_, i) => (
             <div
               key={i}

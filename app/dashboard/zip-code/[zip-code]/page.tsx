@@ -8,6 +8,8 @@ import { IconMapPin, IconLocationPin } from "@tabler/icons-react";
 import Link from "next/link";
 import { StatusBadgeContactDetails } from "@/components/StatusBadgeContactDetails";
 
+import { cookies } from "next/headers";
+
 type Props = {
   params: Promise<{ "zip-code": string }>; // ✅ Promise version
 };
@@ -16,7 +18,15 @@ export default async function ZipCodePage({ params }: Props) {
   const { "zip-code": zipCodeRaw } = await params; // ✅ await the params
   const zipCode = decodeURIComponent(zipCodeRaw);
 
-  const { results } = await searchContactsByPostalCode(zipCode);
+  const cookieStore = await cookies(); // no `await` needed anymore in Next 15
+  const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
+    | "litto"
+    | "skwezed";
+
+  const { results } = await searchContactsByPostalCode(zipCode, "", 50, brand);
+
+  // console.log("ZIP CODE:", zipCode);
+  // console.log("BRAND:", brand);
 
   if (!results || results.length === 0) {
     notFound();
