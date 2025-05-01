@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "https://ba-app-branded.vercel.app/og-image.jpg", // Replace with your actual image
+        url: "/images/ba-open-graph.png", // Replace with your actual image
         width: 1200,
         height: 630,
         alt: "BA App Dashboard Overview",
