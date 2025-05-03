@@ -2,31 +2,58 @@
 import { searchContactsByPostalCode } from "@/app/actions/actions";
 import { HubSpotContact } from "@/types/hubspot";
 import { notFound } from "next/navigation";
+import { IconMapPin } from "@tabler/icons-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin } from "lucide-react";
-import { IconMapPin, IconLocationPin } from "@tabler/icons-react";
+
 import Link from "next/link";
 import { StatusBadgeContactDetails } from "@/components/StatusBadgeContactDetails";
 
 import { cookies } from "next/headers";
+import { ContactCard } from "@/components/ContactCard";
+
+export const dynamic = "force-dynamic";
 
 type Props = {
-  params: Promise<{ "zip-code": string }>; // ✅ Promise version
+  params: { "zip-code": string };
+  searchParams?: { page?: string };
 };
 
-export default async function ZipCodePage({ params }: Props) {
+const PAGE_SIZE = 12;
+
+export default async function ZipCodePage({ params, searchParams }: Props) {
   const { "zip-code": zipCodeRaw } = await params; // ✅ await the params
   const zipCode = decodeURIComponent(zipCodeRaw);
+  const currentPage = parseInt(searchParams?.page || "1", 10);
 
   const cookieStore = await cookies(); // no `await` needed anymore in Next 15
   const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
     | "litto"
     | "skwezed";
 
-  const { results } = await searchContactsByPostalCode(zipCode, "", 50, brand);
+  // ✨ Map pages to cursors
+  const cursors: string[] = [""];
+  let after = "";
 
-  // console.log("ZIP CODE:", zipCode);
-  // console.log("BRAND:", brand);
+  // Fetch forward until reaching the desired page
+  for (let i = 1; i < currentPage; i++) {
+    const res = await searchContactsByPostalCode(
+      zipCode,
+      after,
+      PAGE_SIZE,
+      brand
+    );
+    after = res.paging ?? "";
+    cursors.push(after);
+    if (!after) break; // No more pages
+  }
+
+  const { results, paging } = await searchContactsByPostalCode(
+    zipCode,
+    after,
+    PAGE_SIZE,
+    brand
+  );
 
   if (!results || results.length === 0) {
     notFound();
@@ -42,41 +69,14 @@ export default async function ZipCodePage({ params }: Props) {
         {zipCode}
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 content-stretch">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 content-stretch"> */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {results.map((contact: HubSpotContact) => (
-          <Link
-            key={contact.id}
-            href={`/dashboard/contacts/${contact.id}`}
-            className="block h-full" // ✅ make Link stretch
-          >
-            <Card className="h-full flex flex-col justify-between cursor-pointer hover:shadow-lg transition-shadow p-0">
-              <CardContent className="flex flex-col flex-grow p-4 space-y-2 relative">
-                <div className="flex items-center gap-2 text-lg font-semibold bg-gray-100 dark:bg-[#333] dark:text-white text-black p-2 rounded-t-md">
-                  <span className="uppercase">
-                    {contact.properties?.company ?? "-"}
-                  </span>
-                </div>
-
-                <div className="flex-1 flex flex-col space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="w-4 h-4" />
-                    <span>{contact.properties?.email ?? "-"}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                    <span>{contact.properties?.phone ?? "-"}</span>
-                  </div>
-                </div>
-
-                {/* ✅ Push StatusBadge to bottom */}
-                <div className="mt-auto">
-                  <StatusBadgeContactDetails
-                    status={contact.properties.l2_lead_status || "unknown"}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          <ContactCard
+            key={`${contact.id}-${contact.properties.l2_lead_status}`}
+            contact={contact}
+            href={contact.id}
+          />
         ))}
       </div>
     </main>

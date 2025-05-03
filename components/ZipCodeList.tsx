@@ -25,7 +25,7 @@ export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
 }
 
 export function ZipCodeList() {
-  const { allZips, loading } = useContactList();
+  const { allZips, loadingZips } = useContactList();
   const pathname = usePathname();
   const [zipCount, setZipCount] = useState<number>(10);
   const [ready, setReady] = useState(false);
@@ -49,7 +49,7 @@ export function ZipCodeList() {
     }
   );
 
-  if (loading || allZips.length === 0) {
+  if (loadingZips || allZips.length === 0) {
     return <ZipCodeListSkeleton count={10} />;
   }
 

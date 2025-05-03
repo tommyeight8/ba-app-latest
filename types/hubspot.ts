@@ -10,6 +10,7 @@ export type HubSpotContact = {
     city?: string;
     state?: string;
     zip?: string;
+    jobtitle?: string;
     hs_lead_status?: string;
     l2_lead_status?: string;
     [key: string]: any; // Keep fallback for dynamic properties

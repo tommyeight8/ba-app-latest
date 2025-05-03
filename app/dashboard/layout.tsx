@@ -25,7 +25,7 @@ export default function DashboardLayout({
   const [isPending, startTransition] = useTransition();
 
   const navItems = [
-    { title: "Dashboard", url: "/dashboard", icon: IconHome2 },
+    { title: "Home", url: "/dashboard", icon: IconHome2 },
     // { title: "Tasks", url: "/dashboard/tasks", icon: IconClipboardList },
     // { title: "Team", url: "/dashboard/team", icon: IconUsers },
     // {

@@ -19,8 +19,9 @@ type ContactListContextType = {
   setContacts: React.Dispatch<React.SetStateAction<HubSpotContact[]>>;
   refetchContacts: () => Promise<void>;
   allZips: string[];
-  loading: boolean;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  loadingContacts: boolean;
+  loadingZips: boolean;
+  setLoadingContacts: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const ContactListContext = createContext<ContactListContextType | undefined>(
@@ -38,12 +39,17 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
   const [contacts, setContacts] = useState<HubSpotContact[]>([]);
   const [allZips, setAllZips] = useState<string[]>([]);
   const [loading, setLoading] = useState(false); // ✅ loading state
+  const [loadingContacts, setLoadingContacts] = useState(false);
+  const [loadingZips, setLoadingZips] = useState(false); // 👈 new
   const { data: session, status } = useSession();
   const { brand } = useBrand();
 
   const refetchContacts = async () => {
-    if (!session?.user?.email || loading) return;
-    setLoading(true);
+    if (!session?.user?.email) return;
+
+    setLoadingContacts(true);
+    setLoadingZips(true);
+
     try {
       const [paginatedRes, allRes] = await Promise.all([
         fetchHubSpotContactsPaginated(12, "", session.user.email, brand),
@@ -51,6 +57,7 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
       ]);
 
       if (paginatedRes.results) setContacts(paginatedRes.results);
+      setLoadingContacts(false);
 
       const zipSet = new Set(
         allRes
@@ -61,7 +68,8 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Failed to fetch contacts:", err);
     } finally {
-      setLoading(false);
+      setLoadingContacts(false);
+      setLoadingZips(false);
     }
   };
 
@@ -80,8 +88,9 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
         setContacts,
         refetchContacts,
         allZips,
-        loading,
-        setLoading,
+        loadingContacts,
+        loadingZips,
+        setLoadingContacts,
       }}
     >
       {children}

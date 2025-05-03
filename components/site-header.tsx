@@ -62,9 +62,8 @@ export function SiteHeader({
         />
 
         <div className="ml-auto flex items-center gap-2">
+          {brand === "litto" && <ThemeToggle />}
           <DropdownMenu>
-            {brand === "litto" && <ThemeToggle />}
-
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"

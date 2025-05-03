@@ -42,6 +42,7 @@ export async function fetchAllContactsByEmail(
   const properties = [
     "firstname",
     "lastname",
+    "jobtitle",
     "email",
     "company",
     "phone",

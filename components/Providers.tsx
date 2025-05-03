@@ -6,6 +6,7 @@ import { ContactListProvider } from "@/context/ContactListContext";
 import { BrandProvider } from "@/context/BrandContext";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useEffect, useState } from "react";
+import { EditContactModal } from "./EditContactModal";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -29,6 +30,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
               disableTransitionOnChange
             >
               {children}
+
+              <EditContactModal showDetails={false} />
             </NextThemesProvider>
           </ContactEditProvider>
         </ContactListProvider>

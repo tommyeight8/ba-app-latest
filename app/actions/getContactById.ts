@@ -12,6 +12,7 @@ export async function getContactById(
   const properties = [
     "firstname",
     "lastname",
+    "jobtitle",
     "email",
     "company",
     "phone",

@@ -1,9 +1,10 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 
 import {
   Form,
@@ -19,67 +20,67 @@ import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
 import { logMeeting } from "@/app/actions/logMeeting";
 import Spinner from "@/components/Spinner";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { useBrand } from "@/context/BrandContext";
+import { HubSpotContact } from "@/types/hubspot";
+import { OwnerSelect } from "./OwnerSelector";
 
 const formSchema = z.object({
-  newFirstName: z.string().min(1),
-  title: z.string().min(1),
-  body: z.string().min(1),
-  meetingDate: z.date(),
-  duration: z.number(),
-  outcome: z.enum(["SCHEDULED", "COMPLETED", "NO_SHOW", "CANCELED"]),
+  newFirstName: z.string().min(1, "First name is required"),
+  jobTitle: z.string().min(1, "Job title is required"),
+  body: z.string().min(1, "Meeting notes are required"),
+  l2Status: z.enum(["pending visit", "visit requested by rep", "dropped off"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export function LogMeetingForm({
   contactId,
-  contactFirstName, // ✅ New prop
+  contactFirstName,
+  contactJobTitle,
+  contactCompany,
   onSuccess,
 }: {
   contactId: string;
-  contactFirstName?: string; // ✅ Optional
+  contactFirstName?: string;
+  contactJobTitle?: string;
+  contactCompany?: string;
   onSuccess?: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const { brand } = useBrand();
+  const [selectedOwnerId, setSelectedOwnerId] = useState("");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      newFirstName: contactFirstName || "", // ✅ Pre-fill contact name
-      title: "",
-      body: `Met with [Name] at [Store Name].
+      newFirstName: contactFirstName || "",
+      jobTitle: contactJobTitle || "",
+      body: `
+      Topic discussed
+      -
+      -
 
-Topics discussed:
-- 
-- 
-
-Store traffic:
-Next steps:`,
-      meetingDate: new Date(),
-      duration: 30,
-      outcome: "SCHEDULED",
+      Store traffic:
+      Next step:
+      `,
     },
   });
 
   const onSubmit = (values: FormValues) => {
-    const endDate = new Date(
-      values.meetingDate.getTime() + values.duration * 60000
-    );
+    const generatedTitle = `Met with ${values.newFirstName} at ${
+      contactCompany ?? "Unknown Store"
+    }`;
 
     startTransition(() => {
       logMeeting({
         brand,
         contactId,
-        title: values.title,
+        title: generatedTitle,
         body: values.body,
-        meetingDate: values.meetingDate.toISOString(),
-        endDate: endDate.toISOString(),
-        outcome: values.outcome,
         newFirstName: values.newFirstName,
+        jobTitle: values.jobTitle,
+        l2Status: values.l2Status, // ✅ new
+        ownerId: selectedOwnerId, // Contact owner Id
       })
         .then(() => {
           toast.success("Meeting logged!");
@@ -112,10 +113,10 @@ Next steps:`,
 
         <FormField
           control={form.control}
-          name="title"
+          name="jobTitle"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Meeting Title</FormLabel>
+              <FormLabel>Job Title</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -140,72 +141,40 @@ Next steps:`,
 
         <FormField
           control={form.control}
-          name="meetingDate"
+          name="l2Status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Meeting Date & Time</FormLabel>
-              <FormControl>
-                <DatePicker
-                  selected={field.value}
-                  onChange={field.onChange}
-                  showTimeSelect
-                  timeIntervals={10}
-                  timeFormat="HH:mm"
-                  dateFormat="yyyy-MM-dd h:mm aa"
-                  className="w-full rounded border px-3 py-2 text-sm"
-                />
-              </FormControl>
+              <FormLabel>Status</FormLabel>
+              <div className="space-y-2">
+                {["pending visit", "visit requested by rep", "dropped off"].map(
+                  (status) => (
+                    <label
+                      key={status}
+                      className="flex items-center gap-2 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="l2Status"
+                        value={status}
+                        checked={field.value === status}
+                        onChange={() => field.onChange(status)}
+                        className="hidden peer"
+                      />
+                      <div className="w-4 h-4 rounded-full border-2 border-gray-200 flex items-center justify-center peer-checked:border-green-400 peer-checked:bg-green-400">
+                        <div className="w-2.5 h-2.5 rounded-full opacity-0 peer-checked:opacity-100 bg-white"></div>
+                      </div>
+                      <span className="capitalize">{status}</span>
+                    </label>
+                  )
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="duration"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Duration</FormLabel>
-              <FormControl>
-                <select
-                  className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
-                  {...field}
-                  value={field.value}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                >
-                  {[15, 30, 45, 60].map((min) => (
-                    <option key={min} value={min}>
-                      {min} minutes
-                    </option>
-                  ))}
-                </select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="outcome"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Outcome</FormLabel>
-              <FormControl>
-                <select
-                  className="w-full border rounded px-3 py-2 text-sm dark:bg-zinc-800"
-                  {...field}
-                >
-                  <option value="SCHEDULED">Scheduled</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="NO_SHOW">No Show</option>
-                  <option value="CANCELED">Canceled</option>
-                </select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* Select contact owner */}
+        <OwnerSelect brand={brand} onSelect={setSelectedOwnerId} />
 
         <Button type="submit" disabled={isPending}>
           {isPending ? (

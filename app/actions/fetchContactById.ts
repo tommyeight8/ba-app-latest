@@ -8,6 +8,7 @@ export async function fetchContactById(id: string, brand: "litto" | "skwezed") {
   const props = [
     "firstname",
     "lastname",
+    "jobtitle",
     "email",
     "company",
     "phone",

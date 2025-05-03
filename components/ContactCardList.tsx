@@ -8,6 +8,7 @@ export function ContactCardGrid({ contacts }: { contacts: HubSpotContact[] }) {
         <ContactCard
           key={`${contact.id}-${contact.properties.l2_lead_status}`}
           contact={contact}
+          href={contact.id}
         />
       ))}
     </div>

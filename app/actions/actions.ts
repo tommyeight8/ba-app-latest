@@ -214,6 +214,7 @@ async function searchContacts(
       properties: [
         "firstname",
         "lastname",
+        "jobtitle",
         "email",
         "company",
         "phone",
@@ -269,6 +270,7 @@ export async function fetchHubSpotContactsPaginated(
   const props = [
     "firstname",
     "lastname",
+    "jobtitle",
     "email",
     "company",
     "phone",

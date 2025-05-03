@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
-export const dynamic = "force-dynamic"; // ✅ required for dynamic API calls
+export const dynamic = "force-dynamic";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> } // <-- must use Promise<>
+  { params }: { params: { id: string } }
 ) {
-  const { id } = await params; // <-- must await params
-  const baseUrl = process.env.HUBSPOT_API_BASE!;
-  const token = process.env.HUBSPOT_ACCESS_TOKEN!;
+  const { id } = params;
+  const cookieStore = await cookies();
+  const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
+    | "litto"
+    | "skwezed";
+
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   try {
     const res = await fetch(`${baseUrl}/crm/v3/objects/meetings/${id}`, {
@@ -35,11 +41,13 @@ export async function DELETE(
 
 // import { NextRequest, NextResponse } from "next/server";
 
+// export const dynamic = "force-dynamic"; // ✅ required for dynamic API calls
+
 // export async function DELETE(
 //   req: NextRequest,
-//   context: { params: { id: string } }
+//   { params }: { params: Promise<{ id: string }> } // <-- must use Promise<>
 // ) {
-//   const { id } = context.params;
+//   const { id } = await params; // <-- must await params
 //   const baseUrl = process.env.HUBSPOT_API_BASE!;
 //   const token = process.env.HUBSPOT_ACCESS_TOKEN!;
 

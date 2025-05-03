@@ -6,9 +6,9 @@ import {
   searchContactsByCompany,
 } from "@/app/actions/actions";
 import { searchContactsByStatus } from "@/app/actions/searchContactsByStatus";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ContactCardGrid } from "@/components/ContactCardList";
 import { EditContactModal } from "@/components/EditContactModal";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -16,13 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useContactList } from "@/context/ContactListContext";
 import { useSession } from "next-auth/react";
 import { HubSpotContact } from "@/types/hubspot";
 import { useBrand } from "@/context/BrandContext";
+import SearchAndFilter from "@/components/SearchAndFilter";
+import { useContactEdit } from "@/context/ContactEditContext";
 
 type PaginatedResult = {
   results: HubSpotContact[];
@@ -33,17 +34,20 @@ export default function DashboardPageContent() {
   const pageSize = 12;
   const [page, setPage] = useState(1);
   const [cursors, setCursors] = useState<Record<string, string | null>>({});
-  // const [loading, setLoading] = useState(false);
-  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-  const { brand } = useBrand();
   const [hasNext, setHasNext] = useState(false);
-
-  const { contacts, setContacts, loading, refetchContacts, setLoading } =
-    useContactList();
+  const { brand } = useBrand();
+  const {
+    contacts,
+    setContacts,
+    loadingContacts,
+    refetchContacts,
+    setLoadingContacts,
+  } = useContactList();
   const { data: session, status } = useSession();
+  const { setFetchPage, setPage: setModalPage } = useContactEdit();
 
   const getCursorKey = (page: number, status: string, query: string) =>
     `${page}-${status}-${query || "none"}`;
@@ -52,7 +56,7 @@ export default function DashboardPageContent() {
     pageNum: number = 1,
     overrideStatus: string = selectedStatus,
     overrideQuery: string = query,
-    optimisticUpdater?: (prev: HubSpotContact[]) => HubSpotContact[] // <-- function, not array
+    optimisticUpdater?: (prev: HubSpotContact[]) => HubSpotContact[]
   ) => {
     if (!session?.user?.email) return;
 
@@ -62,12 +66,11 @@ export default function DashboardPageContent() {
       return;
     }
 
-    setLoading(true); // 👈 START LOADING
+    setLoadingContacts(true);
+    const cursorKey = getCursorKey(pageNum, overrideStatus, overrideQuery);
+    const cursor = cursors[cursorKey] ?? "";
 
     try {
-      const cursorKey = getCursorKey(pageNum, overrideStatus, overrideQuery);
-      const cursor = cursors[cursorKey] ?? "";
-
       let res: PaginatedResult;
 
       if (overrideQuery.length >= 2) {
@@ -98,25 +101,20 @@ export default function DashboardPageContent() {
       }
 
       setContacts(res.results ?? []);
-      const nextCursor = res.next;
-      setHasNext((res.results?.length ?? 0) === pageSize);
+      setHasNext(!!res.next);
 
-      setCursors((prev) => ({
-        ...prev,
-        [cursorKey]: cursor,
-        ...(nextCursor
-          ? {
-              [getCursorKey(pageNum + 1, overrideStatus, overrideQuery)]:
-                nextCursor,
-            }
-          : {}),
-      }));
+      if (res.next) {
+        setCursors((prev) => ({
+          ...prev,
+          [getCursorKey(pageNum + 1, overrideStatus, overrideQuery)]: res.next!,
+        }));
+      }
 
       setPage(pageNum);
     } catch (err) {
       console.error("Error fetching contacts:", err);
     } finally {
-      setLoading(false); // 👈 END LOADING
+      setLoadingContacts(false);
       setHasLoadedOnce(true);
     }
   };
@@ -128,104 +126,36 @@ export default function DashboardPageContent() {
   const handleClearSearch = async () => {
     setQuery("");
     setSelectedStatus("all");
-    await fetchPage(1, "all", ""); // ✅ Reset to page 1 after clearing
+    await fetchPage(1, "all", "");
   };
 
   const handleStatusChange = async (val: string) => {
     setSelectedStatus(val);
-    await fetchPage(1, val, query); // ✅ Reset to page 1 after changing status
+    await fetchPage(1, val, query);
   };
 
   useEffect(() => {
     if (status === "authenticated") {
-      // TESTING
       setContacts([]);
       setCursors({});
-      fetchPage(1); // ✅ resets pagination and contact list for the new brand
+      setHasNext(false);
+      // fetchPage(1);
+      fetchPage(1, "all", "");
     }
   }, [brand, status]);
 
   return (
     <div className="flex flex-col gap-6 p-1 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
-      <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:justify-between">
-        <div className="flex items-center gap-2">
-          <Select value={selectedStatus} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-full md:w-[200px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending visit">Pending Visit</SelectItem>
-              <SelectItem value="visit requested by rep">
-                Visit Requested
-              </SelectItem>
-              <SelectItem value="dropped off">Dropped Off</SelectItem>
-            </SelectContent>
-          </Select>
-          {selectedStatus !== "all" && (
-            <Button variant="outline" onClick={handleClearSearch}>
-              Clear Status
-            </Button>
-          )}
-        </div>
+      <SearchAndFilter
+        query={query}
+        selectedStatus={selectedStatus}
+        onQueryChange={setQuery}
+        onStatusChange={handleStatusChange}
+        onSearch={handleSearch}
+        onClear={handleClearSearch}
+      />
 
-        <div className="relative w-full md:max-w-[50%]">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Search store"
-            className="w-full pr-20"
-          />
-
-          {query && (
-            <button
-              onClick={handleClearSearch}
-              className="cursor-pointer absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
-              aria-label="Clear search"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          )}
-
-          <button
-            onClick={handleSearch}
-            className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white"
-            aria-label="Search"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* {loading && !hasLoadedOnce ? ( */}
-      {loading ? (
+      {loadingContacts ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(pageSize)].map((_, i) => (
             <div
@@ -239,36 +169,33 @@ export default function DashboardPageContent() {
             </div>
           ))}
         </div>
+      ) : contacts.length === 0 && hasLoadedOnce ? (
+        <div className="text-center text-muted-foreground py-10">
+          No contacts found.
+        </div>
       ) : (
         <>
-          {!loading && hasLoadedOnce && contacts.length === 0 ? (
-            <div className="text-center text-muted-foreground py-10">
-              No contacts found.
-            </div>
-          ) : (
-            <ContactCardGrid contacts={contacts} />
-          )}
+          <ContactCardGrid contacts={contacts} />
 
-          {/* Edit modal */}
-          <EditContactModal
+          {/* <EditContactModal fetchPage={fetchPage} page={page} showDetails /> */}
+          {/* <EditContactModal showDetails={true} /> */}
+          {/* <EditContactModal
+            showDetails={true}
             fetchPage={fetchPage}
             page={page}
-            showDetails={true}
-          />
+          /> */}
 
           <div className="ml-auto flex items-center gap-4 text-sm">
             <Button
               onClick={() => fetchPage(page - 1)}
-              disabled={page <= 1 || loading}
-              className="w-6 h-6"
+              disabled={page <= 1 || loadingContacts}
             >
               <ArrowLeft />
             </Button>
             <span className="text-gray-400">Page {page}</span>
             <Button
               onClick={() => fetchPage(page + 1)}
-              disabled={!hasNext || loading}
-              className="w-6 h-6"
+              disabled={!hasNext || loadingContacts}
             >
               <ArrowRight />
             </Button>

@@ -96,6 +96,8 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
   if (!contact) return <p className="p-6 text-red-500">Contact not found.</p>;
 
+  console.log(contact);
+
   return (
     <div className="min-h-screen h-full relative">
       <div className="flex flex-col md:flex-row rounded-md gap-8 p-6 border border-muted bg-muted/50 dark:bg-muted/50">
@@ -134,8 +136,9 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           <div className="flex gap-2 dark:text-gray-300">
             <IconMapPin size={18} />
             <div className="w-full">
-              {contact.properties?.address || "N/A"},{" "}
+              {contact.properties?.address || "N/A"}{" "}
               {contact.properties?.city || "N/A"},{" "}
+              {contact.properties?.state || "N/A"}{" "}
               {contact.properties?.zip || "N/A"}
             </div>
           </div>
@@ -208,7 +211,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           <LogMeetingForm
             contactId={contact.id}
             contactFirstName={contact.properties?.firstname}
-            onSuccess={() => {
+            contactJobTitle={contact.properties?.jobtitle}
+            // onSuccess={() => {
+            //   refetchMeetings();
+            //   setModalOpen(false);
+            // }}
+            onSuccess={async () => {
+              await refetchContactDetail();
               refetchMeetings();
               setModalOpen(false);
             }}
