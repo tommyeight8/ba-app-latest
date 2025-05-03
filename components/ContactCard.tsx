@@ -83,23 +83,26 @@ export function ContactCard({
       {/* ✅ Buttons stay separate and not clickable */}
       <div className="flex gap-2 px-4 pb-4">
         <button
-          className="p-2 text-green-400 hover:underline cursor-pointer underline-offset-4 transition duration-200"
+          className="flex items-center gap-1 p-2 text-green-400 hover:underline cursor-pointer underline-offset-4 transition duration-200"
           onClick={(e) => {
             e.stopPropagation();
             setContact(contact);
             setOpen(true);
           }}
         >
+          <IconPencil size={18} className="shrink-0" />
           Edit
         </button>
         <button
-          className="p-2 text-gray-200 hover:underline cursor-pointer underline-offset-4 transition duration-200"
+          className="flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline cursor-pointer 
+          underline-offset-4 transition duration-200"
           onClick={(e) => {
             e.stopPropagation();
             setContact(contact);
             setOpen(true);
           }}
         >
+          <IconTextPlus size={18} className="shrink-0" />
           Log Meeting
         </button>
         {/* <motion.button
