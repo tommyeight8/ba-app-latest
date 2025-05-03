@@ -20,7 +20,7 @@ interface BrandContextType {
 const BrandContext = createContext<BrandContextType | undefined>(undefined);
 
 export function BrandProvider({ children }: { children: ReactNode }) {
-  const [brand, setBrandState] = useState<Brand>("skwezed"); // ✅ renamed
+  const [brand, setBrandState] = useState<Brand>("litto"); // ✅ renamed
   const router = useRouter();
 
   const setBrand = (newBrand: Brand) => {

@@ -3,7 +3,6 @@
 import { use, useRef, useState } from "react";
 import { useContactDetail } from "@/hooks/useContactDetail";
 import { Skeleton } from "@/components/ui/skeleton";
-import Modal from "@/components/LogMeetingModal";
 import { LogMeetingForm } from "@/components/LogMeetingForm";
 import {
   IconDeviceMobile,
@@ -25,6 +24,7 @@ import { useContactEdit } from "@/context/ContactEditContext";
 import { UpdateStatusModal } from "@/components/UpdateStatusModal";
 import clsx from "clsx";
 import { useBrand } from "@/context/BrandContext";
+import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
 
 function getPastelColors(company?: string) {
   if (!company) {
@@ -64,12 +64,16 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { setOpen, setContact: setContextContact } = useContactEdit();
   const logListRef = useRef<{ refetch: () => void }>(null);
   const { brand } = useBrand();
+    const { setOpen: setLogOpen, setContactId, setContactData } = useLogMeetingModal();
+  
 
   const { bg, text } = getPastelColors(contact?.properties?.company);
 
   const refetchMeetings = () => {
     logListRef.current?.refetch();
   };
+
+console.log(contact)
 
   const getInitials = (company?: string) => {
     if (!company) return "--";
@@ -95,8 +99,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   }
 
   if (!contact) return <p className="p-6 text-red-500">Contact not found.</p>;
-
-  console.log(contact);
 
   return (
     <div className="min-h-screen h-full relative">
@@ -158,7 +160,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
 
             {/* Log Meeting */}
             <button
-              onClick={() => setModalOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setContactId(contact.id);
+                setContactData(contact); // ✅ Pass full data
+    
+                setLogOpen(true);
+              }}
               className={clsx(
                 "text-sm mt-6 px-4 py-2 border hover:opacity-80 rounded cursor-pointer transition duration-200 flex items-center gap-1",
                 brand === "skwezed"
@@ -199,7 +207,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       />
 
       {/* Meeting Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setModalOpen}>
+      {/* <Dialog open={isModalOpen} onOpenChange={setModalOpen}>
         <DialogContent
           autoFocus={false}
           className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto"
@@ -212,10 +220,6 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             contactId={contact.id}
             contactFirstName={contact.properties?.firstname}
             contactJobTitle={contact.properties?.jobtitle}
-            // onSuccess={() => {
-            //   refetchMeetings();
-            //   setModalOpen(false);
-            // }}
             onSuccess={async () => {
               await refetchContactDetail();
               refetchMeetings();
@@ -223,7 +227,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
             }}
           />
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 }

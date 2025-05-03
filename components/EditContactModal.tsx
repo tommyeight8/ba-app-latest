@@ -17,6 +17,9 @@ import { useRouter } from "next/navigation";
 import { HubSpotContact } from "@/types/hubspot";
 import { useBrand } from "@/context/BrandContext";
 import { useContactDetail } from "@/hooks/useContactDetail";
+import { useContactList } from "@/context/ContactListContext";
+import Spinner from "./Spinner";
+
 
 interface Props {
   showDetails: boolean;
@@ -40,6 +43,8 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
   const { refetchContactDetail, mutateContact } = useContactDetail(
     contactId || ""
   );
+
+  const { setContacts } = useContactList();
 
   const [form, setForm] = useState({
     StoreName: "",
@@ -88,7 +93,7 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
   const handleSubmit = async () => {
     if (!contactId) return;
     setIsSubmitting(true);
-
+  
     const updatedFields = {
       company: form.StoreName,
       email: form.email,
@@ -98,39 +103,41 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
       state: form.state,
       zip: form.zip,
     };
-
-    // Optimistic UI update for individual contact
-    mutateContact?.(
-      {
-        ...contact!,
-        properties: {
-          ...contact!.properties,
-          ...updatedFields,
-        },
+  
+    const updatedContact: HubSpotContact = {
+      ...contact!,
+      properties: {
+        ...contact!.properties,
+        ...updatedFields,
       },
-      false // don't revalidate yet
+    };
+  
+    // Optimistic UI: update detail view
+    mutateContact?.(updatedContact, false);
+  
+    // Optimistic UI: update contact list immediately
+    setContacts(prev =>
+      prev.map((c) =>
+        c.id === contactId ? updatedContact : c
+      )
     );
-
+  
+    // Persist the update
     const result = await updateContactIfMatch(contactId, updatedFields, brand);
     setIsSubmitting(false);
-
+  
     if (result.success) {
       toast.success("Contact updated!");
-
-      // ✅ Revalidate individual contact
+  
+      // Ensure up-to-date data
       await mutateContact?.();
-
-      // ✅ Fully re-fetch the current contact page (not optimistic updater)
       await contextFetchPage?.(contextPage ?? 1);
-
-      // Optional: also refresh zips etc.
-      // await refetchContact?.();
-
       setOpen(false);
     } else {
       toast.error(result.message || "Update failed.");
     }
   };
+  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -164,7 +171,8 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
             disabled={isSubmitting}
             className="w-full mt-2"
           >
-            {isSubmitting ? "Saving..." : "Save Contact"}
+            {isSubmitting ? <><Spinner size="4" />
+                            Updating</> : "Save Contact"}
           </Button>
         </div>
       </DialogContent>

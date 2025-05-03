@@ -7,6 +7,8 @@ import { BrandProvider } from "@/context/BrandContext";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useEffect, useState } from "react";
 import { EditContactModal } from "./EditContactModal";
+import { LogMeetingModal } from "./LogMeetingModal";
+import { LogMeetingModalProvider } from "@/context/LogMeetingModalContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -23,6 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <BrandProvider>
         <ContactListProvider>
           <ContactEditProvider>
+            <LogMeetingModalProvider>
             <NextThemesProvider
               attribute="class"
               defaultTheme="system"
@@ -30,9 +33,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
               disableTransitionOnChange
             >
               {children}
-
+              
               <EditContactModal showDetails={false} />
+              <LogMeetingModal />
             </NextThemesProvider>
+            </LogMeetingModalProvider>
           </ContactEditProvider>
         </ContactListProvider>
       </BrandProvider>

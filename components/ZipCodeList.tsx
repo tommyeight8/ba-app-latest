@@ -67,7 +67,7 @@ export function ZipCodeList() {
           brand === "skwezed" && "text-white"
         )}
       >
-        Zip Codes
+        Zip Codesss
       </p>
       {uniqueZips.length === 0 ? (
         <p className="text-sm text-muted-foreground">No zip codes available</p>

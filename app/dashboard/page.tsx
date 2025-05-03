@@ -49,6 +49,8 @@ export default function DashboardPageContent() {
   const { data: session, status } = useSession();
   const { setFetchPage, setPage: setModalPage } = useContactEdit();
 
+  console.log(contacts.length)
+
   const getCursorKey = (page: number, status: string, query: string) =>
     `${page}-${status}-${query || "none"}`;
 

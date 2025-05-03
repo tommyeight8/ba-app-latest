@@ -5,7 +5,7 @@ type Props = {
 export default function Spinner({ size = "4" }: Props) {
   return (
     <div
-      className={`h-${size} w-${size} border-2 border-white border-t-transparent animate-spin rounded-full`}
+      className={`h-${size} w-${size} border-2 border-white dark:border-black border-t-transparent animate-spin rounded-full`}
     />
   );
 }

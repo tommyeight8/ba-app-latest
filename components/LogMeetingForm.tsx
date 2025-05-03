@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
+import { useContactDetail } from "@/hooks/useContactDetail";
 
 import {
   Form,
@@ -21,8 +22,8 @@ import { toast } from "react-hot-toast";
 import { logMeeting } from "@/app/actions/logMeeting";
 import Spinner from "@/components/Spinner";
 import { useBrand } from "@/context/BrandContext";
-import { HubSpotContact } from "@/types/hubspot";
 import { OwnerSelect } from "./OwnerSelector";
+import { useContactList } from "@/context/ContactListContext";
 
 const formSchema = z.object({
   newFirstName: z.string().min(1, "First name is required"),
@@ -50,6 +51,12 @@ export function LogMeetingForm({
   const { brand } = useBrand();
   const [selectedOwnerId, setSelectedOwnerId] = useState("");
 
+  // ✅ Pull contactData and setOpen from context
+  const { contactData, setOpen } = useLogMeetingModal();
+  const { mutateContact, refetchContactDetail } = useContactDetail(contactId);
+  const { setContacts } = useContactList();
+
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,10 +74,42 @@ export function LogMeetingForm({
   });
 
   const onSubmit = (values: FormValues) => {
-    const generatedTitle = `Met with ${values.newFirstName} at ${
-      contactCompany ?? "Unknown Store"
-    }`;
-
+    const generatedTitle = `Met with ${values.newFirstName} at ${contactCompany ?? "Unknown Store"}`;
+  
+    // ✅ Optimistic update before saving
+    if (contactData?.id && contactData?.properties) {
+      mutateContact?.(
+        {
+          id: contactData.id,
+          properties: {
+            ...contactData.properties,
+            firstname: values.newFirstName,
+            jobtitle: values.jobTitle,
+            l2_lead_status: values.l2Status,
+          },
+        },
+        false
+      );
+  
+      // ✅ Optimistically update the global contact list
+      setContacts((prev) =>
+        prev.map((c) =>
+          c.id === contactData.id
+            ? {
+                ...c,
+                properties: {
+                  ...c.properties,
+                  firstname: values.newFirstName,
+                  jobtitle: values.jobTitle,
+                  l2_lead_status: values.l2Status,
+                },
+              }
+            : c
+        )
+      );
+    }
+  
+    // ✅ Submit to server
     startTransition(() => {
       logMeeting({
         brand,
@@ -79,13 +118,16 @@ export function LogMeetingForm({
         body: values.body,
         newFirstName: values.newFirstName,
         jobTitle: values.jobTitle,
-        l2Status: values.l2Status, // ✅ new
-        ownerId: selectedOwnerId, // Contact owner Id
+        l2Status: values.l2Status,
+        ownerId: selectedOwnerId,
       })
         .then(() => {
           toast.success("Meeting logged!");
           form.reset();
+          mutateContact?.(); // Revalidate detail view
+          refetchContactDetail?.(); // Re-fetch if needed elsewhere
           onSuccess?.();
+          setOpen(false);
         })
         .catch((err) => {
           console.error(err);
@@ -93,6 +135,9 @@ export function LogMeetingForm({
         });
     });
   };
+  
+
+
 
   return (
     <Form {...form}>
@@ -173,7 +218,6 @@ export function LogMeetingForm({
           )}
         />
 
-        {/* Select contact owner */}
         <OwnerSelect brand={brand} onSelect={setSelectedOwnerId} />
 
         <Button type="submit" disabled={isPending}>

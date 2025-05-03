@@ -55,6 +55,7 @@ export default async function ZipCodePage({ params, searchParams }: Props) {
     brand
   );
 
+
   if (!results || results.length === 0) {
     notFound();
   }

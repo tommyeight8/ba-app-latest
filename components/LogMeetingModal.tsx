@@ -1,33 +1,43 @@
 "use client";
 
-import { ReactNode } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
+import { LogMeetingForm } from "./LogMeetingForm";
 
-export default function Modal({
-  isOpen,
-  onClose,
-  children,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  children: ReactNode;
-}) {
-  if (!isOpen) return null;
+export function LogMeetingModal() {
+  const {
+    open,
+    setOpen,
+    contactId,
+    contactName,
+    contactJobTitle,
+    onSuccess,
+  } = useLogMeetingModal();
+
+  if (!contactId) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center overflow-y-auto max-h-[80vh]"
-      onClick={onClose}
-    >
-      <div className="bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg w-full max-w-xl shadow-xl relative p-6 transition-colors duration-200">
-        <button
-          className="absolute top-2 right-2 text-gray-500 dark:text-gray-400 hover:text-black 
-          dark:hover:text-white text-xl cursor-pointer"
-          onClick={onClose}
-        >
-          ✕
-        </button>
-        {children}
-      </div>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="mb-2">
+          <DialogTitle>Log Meeting {contactName ? `with ${contactName}` : ""}</DialogTitle>
+        </DialogHeader>
+
+        <LogMeetingForm
+          contactId={contactId}
+          contactFirstName={contactName}
+          contactJobTitle={contactJobTitle}
+          onSuccess={async () => {
+            await onSuccess?.();
+            setOpen(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
