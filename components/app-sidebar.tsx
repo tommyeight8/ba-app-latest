@@ -16,6 +16,7 @@ import Image from "next/image";
 import { ZipCodeList } from "./ZipCodeList";
 import Link from "next/link";
 import { useBrand } from "@/context/BrandContext";
+import { ZipCodeLinkList } from "./ZipCodeLinkList";
 
 export function AppSidebar({
   children,
@@ -55,7 +56,8 @@ export function AppSidebar({
         className={`${brand === "skwezed" && "bg-[#009444]"} gap-0`}
       >
         {children}
-        <ZipCodeList />
+        {/* <ZipCodeList /> */}
+        <ZipCodeLinkList />
       </SidebarContent>
 
       <SidebarFooter className={`${brand === "skwezed" && "bg-[#009444]"}`}>

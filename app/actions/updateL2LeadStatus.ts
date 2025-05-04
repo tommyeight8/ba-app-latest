@@ -10,8 +10,6 @@ export async function updateL2LeadStatus(
 ) {
   const { baseUrl, token } = getHubspotCredentials(brand);
 
-  console.log(brand, contactId);
-
   try {
     const response = await fetch(
       `${baseUrl}/crm/v3/objects/contacts/${contactId}`,

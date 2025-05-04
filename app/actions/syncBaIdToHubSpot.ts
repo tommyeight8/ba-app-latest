@@ -48,7 +48,6 @@ async function checkDropdownPropertyExists(
   );
 
   const json = await res.json();
-  console.log("📋 Property check result:", res.status, json);
 
   return res.status !== 404;
 }
@@ -72,7 +71,6 @@ async function createDropdownProperty(
   });
 
   const text = await res.text();
-  console.log("HubSpot Create Property Response:", res.status, text);
 
   if (!res.ok) {
     throw new Error(`Failed to create dropdown: ${text}`);
@@ -116,11 +114,6 @@ async function addEmailAsDropdownOption(
   );
 
   const resText = await patchRes.text();
-  console.log(
-    "📥 HubSpot Patch Option (v3) Response:",
-    patchRes.status,
-    resText
-  );
 
   if (!patchRes.ok) {
     throw new Error(`❌ Failed to patch dropdown options: ${resText}`);

@@ -12,9 +12,6 @@ export default async function TestSearchPage() {
     brand
   );
 
-  console.log("📦 Results:", results);
-  console.log("📨 Paging:", paging);
-
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">

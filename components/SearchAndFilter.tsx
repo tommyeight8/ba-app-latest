@@ -6,8 +6,7 @@ import { IconX } from "@tabler/icons-react";
 import { useEffect, useRef } from "react";
 import { useBrand } from "@/context/BrandContext";
 import { useContactContext } from "@/context/ContactContext";
-
-
+import { ZipcodeFilter } from "./ZipcodeFilter";
 
 export default function SearchAndFilter() {
   const {
@@ -16,7 +15,7 @@ export default function SearchAndFilter() {
     selectedStatus,
     setSelectedStatus,
     fetchPage,
-    setSelectedZip
+    setSelectedZip,
   } = useContactContext();
   const { brand } = useBrand();
   const lastBrand = useRef(brand);
@@ -29,7 +28,7 @@ export default function SearchAndFilter() {
   ];
 
   const statusStyles: Record<string, string> = {
-    all: `bg-transparent text-gray-700`,
+    all: `bg-transparent text-gray-700 dark:text-gray-300`,
     "pending visit": "bg-transparent text-orange-400",
     "visit requested by rep": "bg-transparent text-red-400",
     "dropped off": "bg-transparent text-green-400",
@@ -59,84 +58,86 @@ export default function SearchAndFilter() {
   }, [brand]);
 
   return (
-    <div className="flex flex-col xl:flex-row xl:items-center gap-4 xl:gap-2 w-full md:justify-between">
-      <div className="flex flex-wrap gap-2">
-        {statuses.map((status) => {
-          const isActive = selectedStatus === status;
+    <div className="flex flex-col w-full">
+      <div className="flex flex-col xl:flex-row xl:items-center gap-4 xl:gap-2 w-full md:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {statuses.map((status) => {
+            const isActive = selectedStatus === status;
 
-          return (
+            return (
+              <button
+                key={status}
+                onClick={() => {
+                  setSelectedStatus(status);
+                  fetchPage(1, status, query); // ⬅️ fetch filtered data immediately
+                }}
+                className={`px-3 py-1 rounded-full text-sm transition cursor-pointer ${
+                  statusStyles[status]
+                } ${
+                  isActive
+                    ? `ring-1 ${ringColors[status]} ring-offset-white dark:ring-offset-[#1a1a1a]`
+                    : "opacity-80 hover:opacity-100"
+                }`}
+              >
+                {status === "all"
+                  ? "All Status"
+                  : status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            );
+          })}
+
+          {selectedStatus !== "all" && (
             <button
-              key={status}
-              onClick={() => {
-                setSelectedStatus(status);
-                fetchPage(1, status, query); // ⬅️ fetch filtered data immediately
-              }}
-              className={`px-3 py-1 rounded-full text-sm transition cursor-pointer ${
-                statusStyles[status]
-              } ${
-                isActive
-                  ? `ring-1 ${ringColors[status]} ring-offset-white dark:ring-offset-[#1a1a1a]`
-                  : "opacity-80 hover:opacity-100"
-              }`}
+              onClick={handleClear}
+              className="text-muted-foreground cursor-pointer group"
             >
-              {status === "all"
-                ? "All Status"
-                : status.charAt(0).toUpperCase() + status.slice(1)}
+              <IconX className="text-red-400 group-hover:text-white transition duration-200 group-hover:bg-red-400 rounded-sm" />
             </button>
+          )}
+        </div>
 
-          );
-        })}
+        <div className="relative w-full md:max-w-[400px]">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Search store"
+            className="w-full pr-20"
+          />
 
-        {selectedStatus !== "all" && (
+          {query && (
+            <button
+              onClick={handleClear}
+              className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+              aria-label="Clear search"
+            >
+              <IconX size={16} />
+            </button>
+          )}
+
           <button
-            onClick={handleClear}
-            className="text-muted-foreground cursor-pointer group"
+            onClick={handleSearch}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white"
+            aria-label="Search"
           >
-            <IconX className="text-red-400 group-hover:text-white transition duration-200 group-hover:bg-red-400 rounded-sm" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z"
+              />
+            </svg>
           </button>
-        )}
+        </div>
       </div>
-
-      <div className="relative w-full md:max-w-[400px]">
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          placeholder="Search store"
-          className="w-full pr-20"
-        />
-
-        {query && (
-          <button
-            onClick={handleClear}
-            className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
-            aria-label="Clear search"
-          >
-            <IconX size={16} />
-          </button>
-        )}
-
-        <button
-          onClick={handleSearch}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white"
-          aria-label="Search"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z"
-            />
-          </svg>
-        </button>
-      </div>
+      <ZipcodeFilter />
     </div>
   );
 }

@@ -17,6 +17,8 @@ import { useContactDetail } from "@/hooks/useContactDetail";
 import Spinner from "./Spinner";
 import { HubSpotContact } from "@/types/hubspot";
 import { useContactContext } from "@/context/ContactContext";
+import { useRouter } from "next/navigation";
+import { updateAndRevalidateZipPath } from "@/app/actions/updateContactAndRevalidate";
 
 interface Props {
   showDetails: boolean;
@@ -38,7 +40,11 @@ export function EditContactModal({ showDetails }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { brand } = useBrand();
   const contactId = contact?.id;
-  const { refetchContactDetail, mutateContact } = useContactDetail(contactId || "");
+  const { refetchContactDetail, mutateContact } = useContactDetail(
+    contactId || ""
+  );
+
+  const router = useRouter();
 
   const [form, setForm] = useState({
     StoreName: "",
@@ -111,17 +117,35 @@ export function EditContactModal({ showDetails }: Props) {
       prev.map((c) => (c.id === contactId ? updatedContact : c))
     );
 
-    const result = await updateContactIfMatch(contactId, updatedFields, brand);
+    const result = await updateAndRevalidateZipPath(
+      contactId,
+      updatedFields,
+      brand,
+      form.zip
+    );
+
     setIsSubmitting(false);
 
     if (result.success) {
       toast.success("Contact updated!");
       await mutateContact?.();
-      await fetchPage(page);
+      router.refresh(); // ✅ force UI refresh to reflect updated server data
       setOpen(false);
     } else {
       toast.error(result.message || "Update failed.");
     }
+
+    // const result = await updateContactIfMatch(contactId, updatedFields, brand);
+    // setIsSubmitting(false);
+
+    // if (result.success) {
+    //   toast.success("Contact updated!");
+    //   await mutateContact?.();
+    //   // await fetchPage(page); ❌ REMOVE THIS
+    //   setOpen(false);
+    // } else {
+    //   toast.error(result.message || "Update failed.");
+    // }
   };
 
   return (

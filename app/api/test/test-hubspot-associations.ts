@@ -31,7 +31,6 @@ export async function GET() {
     }
 
     const data = await res.json();
-    console.log("✅ Available Task → Contact associations:", data);
 
     return Response.json({ associations: data }, { status: 200 });
   } catch (err) {

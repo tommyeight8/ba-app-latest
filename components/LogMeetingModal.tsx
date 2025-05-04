@@ -6,35 +6,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
 import { LogMeetingForm } from "./LogMeetingForm";
+import { useContactContext } from "@/context/ContactContext";
 
 export function LogMeetingModal() {
-  const {
-    open,
-    setOpen,
-    contactId,
-    contactName,
-    contactJobTitle,
-    onSuccess,
-  } = useLogMeetingModal();
+  const { logOpen, setLogOpen, contactId, logContactData } =
+    useContactContext();
 
-  if (!contactId) return null;
+  if (!contactId || !logContactData) return null;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={logOpen} onOpenChange={setLogOpen}>
       <DialogContent className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto">
         <DialogHeader className="mb-2">
-          <DialogTitle>Log Meeting {contactName ? `with ${contactName}` : ""}</DialogTitle>
+          <DialogTitle>
+            Log Meeting{" "}
+            {logContactData?.properties?.firstname
+              ? `with ${logContactData.properties.firstname}`
+              : ""}
+          </DialogTitle>
         </DialogHeader>
 
         <LogMeetingForm
           contactId={contactId}
-          contactFirstName={contactName}
-          contactJobTitle={contactJobTitle}
-          onSuccess={async () => {
-            await onSuccess?.();
-            setOpen(false);
+          contactFirstName={logContactData.properties?.firstname}
+          contactJobTitle={logContactData.properties?.jobtitle}
+          onSuccess={() => {
+            setLogOpen(false);
           }}
         />
       </DialogContent>

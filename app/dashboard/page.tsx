@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useEffect, useState } from "react";
 import { useContactContext } from "@/context/ContactContext";
@@ -18,6 +18,8 @@ export default function DashboardPageContent() {
     setQuery,
     selectedStatus,
     setSelectedStatus,
+    setSelectedZip,
+    selectedZip,
   } = useContactContext();
 
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -43,7 +45,7 @@ export default function DashboardPageContent() {
 
   return (
     <div className="flex flex-col gap-6 p-1 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
-      <SearchAndFilter/>
+      <SearchAndFilter />
 
       {loadingContacts ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -69,15 +71,21 @@ export default function DashboardPageContent() {
 
           <div className="ml-auto flex items-center gap-4 text-sm">
             <Button
-              onClick={() => fetchPage(page - 1, selectedStatus, query)}
+              onClick={() => {
+                setSelectedZip(null); // ← clear ZIP filtering
+                fetchPage(page - 1, selectedStatus, query);
+              }}
               disabled={page <= 1 || loadingContacts}
             >
               <ArrowLeft />
             </Button>
             <span className="text-gray-400">Page {page}</span>
             <Button
-              onClick={() => fetchPage(page + 1, selectedStatus, query)}
-              disabled={!hasNext || loadingContacts}
+              onClick={() => {
+                if (selectedZip) return;
+                fetchPage(page + 1, selectedStatus, query);
+              }}
+              disabled={!hasNext || loadingContacts || !!selectedZip}
             >
               <ArrowRight />
             </Button>

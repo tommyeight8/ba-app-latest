@@ -23,7 +23,7 @@ export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
   );
 }
 
-export function ZipCodeList() {
+export function ZipcodeFilter() {
   const { allZips, loadingZips } = useContactList();
   const { brand } = useBrand();
   const {
@@ -62,21 +62,21 @@ export function ZipCodeList() {
   }
 
   return (
-    <div className="p-4">
+    <div className="pt-2">
       <span
         className={clsx(
           "h-[1px] w-full bg-gray-200 dark:bg-zinc-800 block mb-4",
           brand === "skwezed" && "bg-muted/20"
         )}
       />
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between">
         <p
           className={clsx(
             "mb-3 font-semibold text-sm",
             brand === "skwezed" && "text-white"
           )}
         >
-          Zip Codes
+          Filter Zipcode
         </p>
 
         {selectedZip && (
@@ -85,9 +85,10 @@ export function ZipCodeList() {
               setSelectedZip(null);
               fetchPage(1, selectedStatus, query);
             }}
-            className="cursor-pointer text-xs text-muted-foreground mb-2 hover:text-black dark:hover:text-white"
+            className="cursor-pointer text-xs text-muted-foreground mb-2 hover:text-black 
+            dark:hover:text-white px-2 py-1 hover:bg-gray-200 rounded-sm transition duration-200"
           >
-            Clear zipcode x
+            Clear Zipcode X
           </button>
         )}
       </div>
@@ -95,7 +96,7 @@ export function ZipCodeList() {
       {zipCodes.length === 0 ? (
         <p className="text-sm text-muted-foreground">No zip codes available</p>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-wrap gap-2 w-full">
           {zipCodes.map((zip) => {
             const isActive = selectedZip === zip;
             return (
@@ -106,14 +107,14 @@ export function ZipCodeList() {
                   fetchPage(1, selectedStatus, query, undefined, zip);
                 }}
                 className={clsx(
-                  "cursor-pointer text-xs w-full text-center px-3 py-1 rounded-full transition duration-200",
+                  "cursor-pointer text-xs text-center px-3 py-1 rounded-full transition duration-200",
                   isActive
                     ? brand === "skwezed"
                       ? "bg-[#F3DB5B] text-black font-semibold"
                       : "bg-[#333] text-white dark:bg-white dark:text-black font-semibold"
                     : brand === "skwezed"
                     ? "bg-green-900/20 text-white hover:bg-gray-100"
-                    : "bg-gray-200 dark:bg-[#333] dark:text-gray-300 hover:bg-gray-200 hover:text-black"
+                    : "bg-gray-200 dark:bg-[#1c1c1c] dark:text-gray-300 hover:bg-gray-200 hover:text-black"
                 )}
               >
                 {zip}

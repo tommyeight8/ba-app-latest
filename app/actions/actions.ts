@@ -169,7 +169,6 @@ export async function searchContactsByPostalCode(
   limit = 50,
   brand: "litto" | "skwezed" = "litto"
 ): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  console.log(brand, postalCode);
   return searchContacts("zip", postalCode, after, limit, undefined, brand);
 }
 
@@ -233,7 +232,6 @@ async function searchContacts(
   });
 
   const data = await response.json();
-  console.log("🔍 HubSpot search raw:", JSON.stringify(data, null, 2));
 
   return {
     results: data.results ?? [],

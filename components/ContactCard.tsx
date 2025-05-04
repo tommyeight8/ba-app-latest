@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { HubSpotContact } from "@/types/hubspot";
 import { useContactContext } from "@/context/ContactContext";
@@ -77,7 +77,7 @@ export function ContactCard({
 
       <div className="flex gap-2 px-4 pb-4">
         <button
-          className="flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
+          className="cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
           onClick={(e) => {
             e.stopPropagation();
             setSelectedContact(contact);
@@ -89,7 +89,7 @@ export function ContactCard({
         </button>
 
         <button
-          className="flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
+          className="cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
           onClick={(e) => {
             e.stopPropagation();
             setContactId(contact.id);
