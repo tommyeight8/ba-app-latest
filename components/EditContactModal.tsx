@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useContactEdit } from "@/context/ContactEditContext";
 import { fetchContactById } from "@/app/actions/fetchContactById";
 import { updateContactIfMatch } from "@/app/actions/updateContactByEmailandId";
 import { toast } from "react-hot-toast";
@@ -13,13 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
-import { HubSpotContact } from "@/types/hubspot";
 import { useBrand } from "@/context/BrandContext";
 import { useContactDetail } from "@/hooks/useContactDetail";
-import { useContactList } from "@/context/ContactListContext";
 import Spinner from "./Spinner";
-
+import { HubSpotContact } from "@/types/hubspot";
+import { useContactContext } from "@/context/ContactContext";
 
 interface Props {
   showDetails: boolean;
@@ -27,24 +24,21 @@ interface Props {
   mutateContact?: (data?: HubSpotContact, shouldRevalidate?: boolean) => void;
 }
 
-export function EditContactModal({ showDetails, refetchContact }: Props) {
+export function EditContactModal({ showDetails }: Props) {
   const {
-    contact,
-    open,
-    setOpen,
-    setContact,
-    fetchPage: contextFetchPage,
-    page: contextPage,
-  } = useContactEdit();
+    selectedContact: contact,
+    setSelectedContact: setContact,
+    editOpen: open,
+    setEditOpen: setOpen,
+    fetchPage,
+    page,
+    setContacts,
+  } = useContactContext();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { brand } = useBrand();
   const contactId = contact?.id;
-  const { refetchContactDetail, mutateContact } = useContactDetail(
-    contactId || ""
-  );
-
-  const { setContacts } = useContactList();
+  const { refetchContactDetail, mutateContact } = useContactDetail(contactId || "");
 
   const [form, setForm] = useState({
     StoreName: "",
@@ -59,7 +53,6 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
   useEffect(() => {
     if (!open || !contact?.id) return;
 
-    // Clear the form to avoid flashing stale data
     setForm({
       StoreName: "",
       email: "",
@@ -93,7 +86,7 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
   const handleSubmit = async () => {
     if (!contactId) return;
     setIsSubmitting(true);
-  
+
     const updatedFields = {
       company: form.StoreName,
       email: form.email,
@@ -103,7 +96,7 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
       state: form.state,
       zip: form.zip,
     };
-  
+
     const updatedContact: HubSpotContact = {
       ...contact!,
       properties: {
@@ -111,33 +104,25 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
         ...updatedFields,
       },
     };
-  
-    // Optimistic UI: update detail view
+
+    // Optimistic UI
     mutateContact?.(updatedContact, false);
-  
-    // Optimistic UI: update contact list immediately
-    setContacts(prev =>
-      prev.map((c) =>
-        c.id === contactId ? updatedContact : c
-      )
+    setContacts((prev) =>
+      prev.map((c) => (c.id === contactId ? updatedContact : c))
     );
-  
-    // Persist the update
+
     const result = await updateContactIfMatch(contactId, updatedFields, brand);
     setIsSubmitting(false);
-  
+
     if (result.success) {
       toast.success("Contact updated!");
-  
-      // Ensure up-to-date data
       await mutateContact?.();
-      await contextFetchPage?.(contextPage ?? 1);
+      await fetchPage(page);
       setOpen(false);
     } else {
       toast.error(result.message || "Update failed.");
     }
   };
-  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -171,8 +156,13 @@ export function EditContactModal({ showDetails, refetchContact }: Props) {
             disabled={isSubmitting}
             className="w-full mt-2"
           >
-            {isSubmitting ? <><Spinner size="4" />
-                            Updating</> : "Save Contact"}
+            {isSubmitting ? (
+              <>
+                <Spinner size="4" /> Updating
+              </>
+            ) : (
+              "Save Contact"
+            )}
           </Button>
         </div>
       </DialogContent>

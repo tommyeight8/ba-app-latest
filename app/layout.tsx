@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  themeColor: "#111",
+};
+
 export const metadata: Metadata = {
   title: "Brand Ambassador Dashboard | BA App",
   description:
@@ -33,7 +37,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "BA App Team", url: "https://ba-app-branded.vercel.app" }],
   creator: "BA App Team",
-  themeColor: "#111",
   metadataBase: new URL("https://ba-app-branded.vercel.app"),
   openGraph: {
     title: "Brand Ambassador Dashboard | BA App",

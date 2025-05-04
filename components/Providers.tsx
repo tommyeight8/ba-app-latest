@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { EditContactModal } from "./EditContactModal";
 import { LogMeetingModal } from "./LogMeetingModal";
 import { LogMeetingModalProvider } from "@/context/LogMeetingModalContext";
+import { ContactProvider } from "@/context/ContactContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <BrandProvider>
+      <ContactProvider>
         <ContactListProvider>
           <ContactEditProvider>
             <LogMeetingModalProvider>
@@ -40,6 +42,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             </LogMeetingModalProvider>
           </ContactEditProvider>
         </ContactListProvider>
+        </ContactProvider>
       </BrandProvider>
     </SessionProvider>
   );

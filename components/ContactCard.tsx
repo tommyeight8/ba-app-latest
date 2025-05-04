@@ -1,15 +1,12 @@
-"use client";
+'use client'
 
 import { HubSpotContact } from "@/types/hubspot";
-import { useContactEdit } from "@/context/ContactEditContext";
+import { useContactContext } from "@/context/ContactContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { IconPencil, IconTextPlus } from "@tabler/icons-react";
-import clsx from "clsx";
-import { useBrand } from "@/context/BrandContext";
 import { useRouter } from "next/navigation";
-import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
 
 export function ContactCard({
   contact,
@@ -18,10 +15,14 @@ export function ContactCard({
   contact: HubSpotContact;
   href: string;
 }) {
-  const { setContact, setOpen } = useContactEdit();
-  const { brand } = useBrand();
   const router = useRouter();
-  const { setOpen: setLogOpen, setContactId, setContactData } = useLogMeetingModal();
+  const {
+    setSelectedContact,
+    setEditOpen,
+    setLogOpen,
+    setContactId,
+    setLogContactData,
+  } = useContactContext();
 
   const {
     email,
@@ -35,8 +36,6 @@ export function ContactCard({
     l2_lead_status,
   } = contact.properties;
 
-  console.log(contact)
-
   const validL2Statuses = [
     "pending visit",
     "visit requested by rep",
@@ -48,13 +47,12 @@ export function ContactCard({
 
   return (
     <Card className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0">
-      {/* ✅ Clickable area for navigation */}
       <div
         onClick={() => router.push(`/dashboard/contacts/${href}`)}
         className="cursor-pointer flex-grow"
       >
         <CardContent className="p-4 flex flex-col gap-2">
-          <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-black dark:text-white p-2 rounded">
+          <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-white p-2 rounded">
             {company ?? "-"}
           </div>
 
@@ -77,30 +75,29 @@ export function ContactCard({
         </CardContent>
       </div>
 
-      {/* ✅ Action buttons */}
       <div className="flex gap-2 px-4 pb-4">
         <button
-          className="flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4 transition duration-200"
+          className="flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
           onClick={(e) => {
             e.stopPropagation();
-            setContact(contact);
-            setOpen(true);
+            setSelectedContact(contact);
+            setEditOpen(true);
           }}
         >
-          <IconPencil size={18} className="shrink-0" />
+          <IconPencil size={18} />
           Edit
         </button>
+
         <button
-          className="flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4 transition duration-200"
+          className="flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
           onClick={(e) => {
             e.stopPropagation();
             setContactId(contact.id);
-            setContactData(contact); // ✅ Pass full data
-
+            setLogContactData(contact);
             setLogOpen(true);
           }}
         >
-          <IconTextPlus size={18} className="shrink-0" />
+          <IconTextPlus size={18} />
           Log Meeting
         </button>
       </div>

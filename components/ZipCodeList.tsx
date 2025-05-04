@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useContactList } from "@/context/ContactListContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBrand } from "@/context/BrandContext";
 import clsx from "clsx";
+import { useContactContext } from "@/context/ContactContext";
 
 export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
   return (
@@ -26,28 +25,31 @@ export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
 
 export function ZipCodeList() {
   const { allZips, loadingZips } = useContactList();
-  const pathname = usePathname();
-  const [zipCount, setZipCount] = useState<number>(10);
-  const [ready, setReady] = useState(false);
   const { brand } = useBrand();
+  const {
+    selectedZip,
+    setSelectedZip,
+    fetchPage,
+    selectedStatus,
+    query,
+  } = useContactContext();
+
+  const [zipCount, setZipCount] = useState<number>(10);
 
   useEffect(() => {
     if (allZips.length > 0) {
       setZipCount(allZips.length);
-      setReady(true);
     }
   }, [allZips]);
 
-  const uniqueZips = Array.from(new Set(allZips.filter(Boolean))).sort(
-    (a, b) => {
-      const numA = parseInt(a, 10);
-      const numB = parseInt(b, 10);
-      if (isNaN(numA) || isNaN(numB)) {
-        return a.localeCompare(b);
-      }
-      return numA - numB;
+  const uniqueZips = Array.from(new Set(allZips.filter(Boolean))).sort((a, b) => {
+    const numA = parseInt(a, 10);
+    const numB = parseInt(b, 10);
+    if (isNaN(numA) || isNaN(numB)) {
+      return a.localeCompare(b);
     }
-  );
+    return numA - numB;
+  });
 
   if (loadingZips || allZips.length === 0) {
     return <ZipCodeListSkeleton count={10} />;
@@ -61,40 +63,55 @@ export function ZipCodeList() {
           brand === "skwezed" && "bg-muted/20"
         )}
       ></span>
-      <p
-        className={clsx(
-          "mb-3 font-semibold text-sm",
-          brand === "skwezed" && "text-white"
+      <div className="flex items-center justify-between mb-3">
+        <p
+          className={clsx(
+            "mb-3 font-semibold text-sm",
+            brand === "skwezed" && "text-white"
+          )}
+        >
+          Zip Codes
+        </p>
+
+        {selectedZip && (
+          <button
+            onClick={() => {
+              setSelectedZip(null);
+              fetchPage(1, selectedStatus, query); // clear zip
+            }}
+            className="text-xs text-muted-foreground mb-2 hover:text-black dark:hover:text-white"
+          >
+            Clear zipcode
+          </button>
         )}
-      >
-        Zip Codesss
-      </p>
+      </div>
+
       {uniqueZips.length === 0 ? (
         <p className="text-sm text-muted-foreground">No zip codes available</p>
       ) : (
         <div className="grid grid-cols-2 gap-2">
           {uniqueZips.map((zip) => {
-            const isActive = pathname === `/dashboard/zip-code/${zip}`;
+            const isActive = selectedZip === zip;
             return (
-              <Link
+              <button
                 key={zip}
-                href={`/dashboard/zip-code/${zip}`}
-                className={`text-xs w-full text-center px-3 py-1 rounded-full hover:opacity-70 transition duration-200 ${
+                onClick={() => {
+                  setSelectedZip(zip);
+                  fetchPage(1, selectedStatus, query, undefined, zip);
+                }}
+                className={clsx(
+                  "text-xs w-full text-center px-3 py-1 rounded-full transition duration-200",
                   isActive
-                    ? `${
-                        brand === "skwezed"
-                          ? "bg-[#F3DB5B]"
-                          : "bg-[#333] text-white"
-                      } dark:bg-white dark:text-black font-semibold`
-                    : `${
-                        brand === "skwezed"
-                          ? "bg-green-900/20 text-white hover:bg-gray-100"
-                          : "bg-gray-200"
-                      } dark:bg-[#333] dark:text-gray-300 hover:bg-gray-200 hover:text-black`
-                }`}
+                    ? brand === "skwezed"
+                      ? "bg-[#F3DB5B] text-black font-semibold"
+                      : "bg-[#333] text-white dark:bg-white dark:text-black font-semibold"
+                    : brand === "skwezed"
+                      ? "bg-green-900/20 text-white hover:bg-gray-100"
+                      : "bg-gray-200 dark:bg-[#333] dark:text-gray-300 hover:bg-gray-200 hover:text-black"
+                )}
               >
                 {zip}
-              </Link>
+              </button>
             );
           })}
         </div>
