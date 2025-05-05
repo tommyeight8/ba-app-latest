@@ -1,5 +1,5 @@
 "use client";
-
+// UPdated redo
 import { useEffect, useState } from "react";
 import { useContactContext } from "@/context/ContactContext";
 import { ContactCardGrid } from "@/components/ContactCardList";
