@@ -40,8 +40,8 @@ export function UpdateStatusModal({
   const handleUpdate = async () => {
     if (!contactId || !contact) return;
     setLoading(true);
-
-    // ⚡️ Optimistic update
+  
+    // ⚡ Optimistic UI update
     mutateContact?.(
       {
         ...contact,
@@ -50,20 +50,32 @@ export function UpdateStatusModal({
           l2_lead_status: selected,
         },
       },
-      false
+      false // do not revalidate yet
     );
-
-    const res = await updateL2LeadStatus(contactId, selected, brand);
-    setLoading(false);
-
+  
+    // 🚀 Call server action with revalidation of contact detail route
+    const res = await updateL2LeadStatus(
+      contactId,
+      selected,
+      brand
+      // optional: `/dashboard/contacts/${contactId}` if you modify the action to accept a path
+    );
+  
     if (res.success) {
       toast.success("Status updated");
-      await refetchContact?.().then(() => {});
+  
+      // 🔄 Ensure latest data pulled after server revalidation
+      await refetchContact?.();
+  
+      // ✅ Close modal
       setOpen(false);
     } else {
       toast.error(res.message || "Update failed");
     }
+  
+    setLoading(false);
   };
+  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

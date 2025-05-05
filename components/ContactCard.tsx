@@ -7,6 +7,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { IconPencil, IconTextPlus } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function ContactCard({
   contact,
@@ -45,10 +46,15 @@ export function ContactCard({
     hs_lead_status === "Samples" &&
     validL2Statuses.includes(l2_lead_status ?? "");
 
+    const safeId = encodeURIComponent(contact.id ?? "");
+
+
   return (
-    <Card className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0">
+    <Card 
+    onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
+    className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0">
       <div
-        onClick={() => router.push(`/dashboard/contacts/${href}`)}
+        // onClick={() => router.push(`/dashboard/contacts/${href}`)}
         className="cursor-pointer flex-grow"
       >
         <CardContent className="p-4 flex flex-col gap-2">

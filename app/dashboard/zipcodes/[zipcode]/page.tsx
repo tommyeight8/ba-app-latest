@@ -51,6 +51,8 @@ export default async function ContactsByZipPage({
     brand
   );
 
+  console.log(results)
+
   if (!results || results.length === 0) {
     notFound();
   }
@@ -66,13 +68,16 @@ export default async function ContactsByZipPage({
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {results.map((contact: HubSpotContact) => (
-          <ContactCard
+        {results.map((contact: HubSpotContact) => {
+          console.log(contact.id)
+          return (
+            <ContactCard
             key={`${contact.id}-${contact.properties.l2_lead_status}`}
             contact={contact}
             href={contact.id}
           />
-        ))}
+          )
+        })}
       </div>
     </main>
   );

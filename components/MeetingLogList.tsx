@@ -6,6 +6,8 @@ import { Pencil, Trash, ChevronDown, ChevronUp } from "lucide-react";
 import { EditMeetingModal } from "./EditMeetingModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeleteMeetingModal } from "@/components/DeleteMeetingModal";
+import moment from "moment";
+
 
 export const MeetingLogList = forwardRef(function MeetingLogList(
   { contactId }: { contactId: string },
@@ -73,7 +75,15 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
           onClick={() => toggleCollapse(meeting.id)}
           className="flex justify-between items-start cursor-pointer hover:opacity-80 transition duration-150"
         >
-          <h4 className="text-md font-semibold">{title}</h4>
+          {/* <h4 className="text-md font-semibold">{title}</h4> */}
+          <h4 className="text-md font-semibold text-gray-800 dark:text-gray-100 capitalize">
+            {moment(meeting.properties.hs_timestamp).fromNow()} ·{" "}
+            <span className="capitalize text-green-400 text-sm">
+              ({meeting.properties.hs_meeting_outcome?.toLowerCase() || "unknown"})
+            </span>
+          </h4>
+
+          
           <button className="text-gray-500 hover:text-black dark:hover:text-white transition cursor-pointer">
             {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </button>

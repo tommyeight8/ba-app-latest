@@ -129,7 +129,7 @@ export function EditContactModal({ showDetails }: Props) {
     if (result.success) {
       toast.success("Contact updated!");
       await mutateContact?.();
-      router.refresh(); // ✅ force UI refresh to reflect updated server data
+      // router.refresh(); // ✅ force UI refresh to reflect updated server data
       setOpen(false);
     } else {
       toast.error(result.message || "Update failed.");

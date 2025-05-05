@@ -24,20 +24,7 @@ export default function DashboardPageContent() {
 
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-  const handleSearch = async () => {
-    await fetchPage(1, selectedStatus, query);
-  };
-
-  const handleClearSearch = async () => {
-    setQuery("");
-    setSelectedStatus("all");
-    await fetchPage(1, "all", "");
-  };
-
-  const handleStatusChange = async (val: string) => {
-    setSelectedStatus(val);
-    await fetchPage(1, val, query);
-  };
+  console.log(contacts)
 
   useEffect(() => {
     fetchPage(1, "all", "").then(() => setHasLoadedOnce(true));

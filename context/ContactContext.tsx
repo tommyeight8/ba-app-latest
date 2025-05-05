@@ -18,6 +18,9 @@ import { searchContactsByStatus } from "@/app/actions/searchContactsByStatus";
 import { fetchAllContactsByEmail } from "@/app/actions/fetchAllContactsByEmail";
 import { useBrand } from "./BrandContext";
 
+import { usePathname } from "next/navigation";
+
+
 type ContactContextType = {
   contacts: HubSpotContact[];
   setContacts: React.Dispatch<React.SetStateAction<HubSpotContact[]>>;
@@ -89,6 +92,9 @@ export function ContactProvider({ children }: { children: ReactNode }) {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedZip, setSelectedZip] = useState<string | null>(null);
   const [zipContacts, setZipContacts] = useState<HubSpotContact[]>([]);
+
+  const pathname = usePathname();
+
 
   const [selectedContact, setSelectedContact] = useState<HubSpotContact | null>(
     null
@@ -226,6 +232,26 @@ export function ContactProvider({ children }: { children: ReactNode }) {
       refetchContacts();
     }
   }, [status, brand]);
+
+  useEffect(() => {
+    // Reset context state when navigating back to /dashboard
+    if (pathname === "/dashboard") {
+      setQuery("");
+      setSelectedStatus("all");
+      setSelectedZip(null);
+      setPage(1);
+      setContacts([]);
+      setZipContacts([]);
+      setHasNext(false);
+      setSelectedContact(null);
+      setEditOpen(false);
+      setLogOpen(false);
+      setContactId(null);
+      setLogContactData(null);
+      setCursors({});
+      refetchContacts();
+    }
+  }, [pathname]);
 
   return (
     <ContactContext.Provider

@@ -2,6 +2,7 @@
 "use server";
 
 import { getHubspotCredentials } from "@/lib/getHubspotCredentials"; // ✅ central helper
+import { revalidatePath } from "next/cache";
 
 export async function updateL2LeadStatus(
   contactId: string,
@@ -31,6 +32,8 @@ export async function updateL2LeadStatus(
       const errorText = await response.text();
       throw new Error(errorText);
     }
+    // ✅ Trigger revalidation for UI update
+    revalidatePath(`/dashboard/contacts/${contactId}`);
 
     return { success: true };
   } catch (error) {
