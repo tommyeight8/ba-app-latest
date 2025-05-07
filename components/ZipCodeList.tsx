@@ -14,16 +14,16 @@ export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
   return (
     <div className="p-4">
       <span className="h-[1px] w-full bg-gray-200 dark:bg-zinc-800 block mb-4" />
-      <div className="flex items-center justify-between mb-3">
-        <p className="font-semibold text-sm">Filter Zipcode</p>
+      <div className="flex items-center justify-between mb-2">
+        {/* <p className="font-semibold text-sm">Filter Zipcode</p> */}
         <Skeleton className="h-6 w-24 rounded-xs" />
       </div>
 
-      <div className="p-3 md:p-0 flex md:flex-wrap gap-2 w-full py-1 sm:flex-nowrap overflow-x-auto sm:whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-zinc-700">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-x-2 gap-y-2">
         {Array.from({ length: count }).map((_, i) => (
           <Skeleton
             key={i}
-            className="h-6 w-20 rounded-full bg-gray-200 dark:bg-zinc-800"
+            className="h-6 rounded-full bg-gray-200 dark:bg-zinc-800"
           />
         ))}
       </div>
