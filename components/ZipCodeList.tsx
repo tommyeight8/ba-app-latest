@@ -152,7 +152,7 @@ export function SideZipcodeFilter() {
         <p className="text-sm text-muted-foreground">No zip codes available</p>
       ) : (
         // <div className="p-3 md:p-0 flex md:flex-wrap gap-2 w-full py-1 sm:flex-nowrap overflow-x-auto sm:whitespace-nowrap sm:scrollbar-hide">
-        <div className="p-3 md:p-0 flex md:flex-wrap gap-2 w-full py-1 sm:flex-nowrap overflow-x-auto sm:whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-zinc-700">
+        <div className="text-center p-3 md:p-0 grid grid-cols-2 md:flex md:flex-wrap gap-2 w-full py-1">
           {zipCodes.map((zip) => {
             const isActive = selectedZip === zip;
             return (
