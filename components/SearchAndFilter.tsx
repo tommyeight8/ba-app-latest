@@ -8,13 +8,18 @@ import { useBrand } from "@/context/BrandContext";
 import { useContactContext } from "@/context/ContactContext";
 import { ZipcodeFilter } from "./ZipcodeFilter";
 
-export default function SearchAndFilter() {
+type Props = {
+  showZipFilter?: boolean;
+};
+
+export default function SearchAndFilter({ showZipFilter = true }: Props) {
   const {
     query,
     setQuery,
     selectedStatus,
     setSelectedStatus,
     fetchPage,
+    selectedZip,
     setSelectedZip,
   } = useContactContext();
   const { brand } = useBrand();
@@ -69,7 +74,8 @@ export default function SearchAndFilter() {
                 key={status}
                 onClick={() => {
                   setSelectedStatus(status);
-                  fetchPage(1, status, query); // ⬅️ fetch filtered data immediately
+                  // fetchPage(1, status, query);
+                  fetchPage(1, status, query, undefined, selectedZip);
                 }}
                 className={`px-3 py-1 rounded-full text-sm transition cursor-pointer ${
                   statusStyles[status]
@@ -137,7 +143,7 @@ export default function SearchAndFilter() {
           </button>
         </div>
       </div>
-      <ZipcodeFilter />
+      {/* {showZipFilter && <ZipcodeFilter />} */}
     </div>
   );
 }

@@ -10,13 +10,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { IconInnerShadowTop } from "@tabler/icons-react";
+import { IconInnerShadowTop, IconPlus } from "@tabler/icons-react";
 import { NavUser } from "@/components/nav-user";
 import Image from "next/image";
-import { ZipCodeList } from "./ZipCodeList";
+import { SideZipcodeFilter } from "./ZipCodeList";
 import Link from "next/link";
 import { useBrand } from "@/context/BrandContext";
 import { ZipCodeLinkList } from "./ZipCodeLinkList";
+import { Button } from "./ui/button";
 
 export function AppSidebar({
   children,
@@ -56,8 +57,10 @@ export function AppSidebar({
         className={`${brand === "skwezed" && "bg-[#009444]"} gap-0`}
       >
         {children}
-        {/* <ZipCodeList /> */}
-        <ZipCodeLinkList />
+
+        {/* <SideZipcodeFilter /> */}
+        {/* <ZipCodeLinkList /> */}
+        <SideZipcodeFilter />
       </SidebarContent>
 
       <SidebarFooter className={`${brand === "skwezed" && "bg-[#009444]"}`}>

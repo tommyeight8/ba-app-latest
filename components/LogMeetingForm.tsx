@@ -45,7 +45,7 @@ export function LogMeetingForm({
   contactFirstName?: string;
   contactJobTitle?: string;
   contactCompany?: string;
-  onSuccess?: () => void;
+  onSuccess?: (newMeeting: any) => void;
 }) {
   const [isPending, startTransition] = useTransition();
   const { brand } = useBrand();
@@ -55,7 +55,6 @@ export function LogMeetingForm({
   const { contactData, setOpen } = useLogMeetingModal();
   const { mutateContact, refetchContactDetail } = useContactDetail(contactId);
   const { setContacts } = useContactList();
-
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -74,8 +73,10 @@ export function LogMeetingForm({
   });
 
   const onSubmit = (values: FormValues) => {
-    const generatedTitle = `Met with ${values.newFirstName} at ${contactCompany ?? "Unknown Store"}`;
-  
+    const generatedTitle = `Met with ${values.newFirstName} at ${
+      contactCompany ?? "Unknown Store"
+    }`;
+
     // ✅ Optimistic update before saving
     if (contactData?.id && contactData?.properties) {
       mutateContact?.(
@@ -90,7 +91,7 @@ export function LogMeetingForm({
         },
         false
       );
-  
+
       // ✅ Optimistically update the global contact list
       setContacts((prev) =>
         prev.map((c) =>
@@ -108,7 +109,7 @@ export function LogMeetingForm({
         )
       );
     }
-  
+
     // ✅ Submit to server
     startTransition(() => {
       logMeeting({
@@ -121,12 +122,12 @@ export function LogMeetingForm({
         l2Status: values.l2Status,
         ownerId: selectedOwnerId,
       })
-        .then(() => {
+        .then((newMeeting) => {
           toast.success("Meeting logged!");
           form.reset();
           mutateContact?.(); // Revalidate detail view
           refetchContactDetail?.(); // Re-fetch if needed elsewhere
-          onSuccess?.();
+          onSuccess?.(newMeeting); // Success passed new meeting
           setOpen(false);
         })
         .catch((err) => {
@@ -135,9 +136,6 @@ export function LogMeetingForm({
         });
     });
   };
-  
-
-
 
   return (
     <Form {...form}>
@@ -155,7 +153,6 @@ export function LogMeetingForm({
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="jobTitle"
@@ -169,7 +166,6 @@ export function LogMeetingForm({
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="body"
@@ -183,7 +179,6 @@ export function LogMeetingForm({
             </FormItem>
           )}
         />
-
         <FormField
           control={form.control}
           name="l2Status"
@@ -217,9 +212,7 @@ export function LogMeetingForm({
             </FormItem>
           )}
         />
-
-        <OwnerSelect brand={brand} onSelect={setSelectedOwnerId} />
-
+        {/* <OwnerSelect brand={brand} onSelect={setSelectedOwnerId} /> */}
         <Button type="submit" disabled={isPending}>
           {isPending ? (
             <div className="flex items-center gap-1">

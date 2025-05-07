@@ -8,6 +8,7 @@ import { StatusBadge } from "./StatusBadge";
 import { IconPencil, IconTextPlus } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
 
 export function ContactCard({
   contact,
@@ -24,6 +25,12 @@ export function ContactCard({
     setContactId,
     setLogContactData,
   } = useContactContext();
+
+  const {
+    setOpen,
+    setContactId: setContactIdForMeeting,
+    setContactData,
+  } = useLogMeetingModal();
 
   const {
     email,
@@ -46,19 +53,19 @@ export function ContactCard({
     hs_lead_status === "Samples" &&
     validL2Statuses.includes(l2_lead_status ?? "");
 
-    const safeId = encodeURIComponent(contact.id ?? "");
-
+  const safeId = encodeURIComponent(contact.id ?? "");
 
   return (
-    <Card 
-    onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
-    className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0">
+    <Card
+      onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
+      className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0"
+    >
       <div
         // onClick={() => router.push(`/dashboard/contacts/${href}`)}
         className="cursor-pointer flex-grow"
       >
         <CardContent className="p-4 flex flex-col gap-2">
-          <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-white p-2 rounded">
+          <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-gray-200 p-2 rounded">
             {company ?? "-"}
           </div>
 
@@ -81,9 +88,9 @@ export function ContactCard({
         </CardContent>
       </div>
 
-      <div className="flex gap-2 px-4 pb-4">
+      <div className="flex gap-1 px-4 pb-4">
         <button
-          className="cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
+          className="text-md cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
           onClick={(e) => {
             e.stopPropagation();
             setSelectedContact(contact);
@@ -95,7 +102,7 @@ export function ContactCard({
         </button>
 
         <button
-          className="cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
+          className="text-md cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
           onClick={(e) => {
             e.stopPropagation();
             setContactId(contact.id);

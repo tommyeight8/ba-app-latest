@@ -1,21 +1,29 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBrand } from "@/context/BrandContext";
 import clsx from "clsx";
 import { useContactContext } from "@/context/ContactContext";
 import { useContactList } from "@/context/ContactListContext";
+import { X } from "lucide-react";
+import { memo } from "react";
+import { motion } from "framer-motion";
 
 export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
   return (
-    <div className="p-4">
-      <Skeleton className="h-4 w-24 bg-gray-200 mb-3 rounded" />
-      <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+    <div className="pt-2 p-4">
+      <span className="h-[1px] w-full bg-gray-200 dark:bg-zinc-800 block mb-4" />
+      <div className="flex items-center justify-between mb-3">
+        <p className="font-semibold text-sm">Filter Zipcode</p>
+        <Skeleton className="h-6 w-24 rounded-xs" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 p-4 md:p-0 place-items-center">
         {Array.from({ length: count }).map((_, i) => (
           <Skeleton
             key={i}
-            className="h-6 rounded-full bg-gray-200 dark:bg-zinc-800"
+            className="h-6 w-20 rounded-full bg-gray-200 dark:bg-zinc-800"
           />
         ))}
       </div>
@@ -23,7 +31,49 @@ export function ZipCodeListSkeleton({ count = 10 }: { count?: number }) {
   );
 }
 
-export function ZipCodeList() {
+const ZipButton = memo(function ZipButton({
+  zip,
+  isActive,
+  onClick,
+  brand,
+}: {
+  zip: string;
+  isActive: boolean;
+  onClick: () => void;
+  brand: string;
+}) {
+  return (
+    <div className="relative">
+      {isActive && (
+        <motion.div
+          layoutId="zip-pill"
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          className={clsx(
+            "absolute inset-0 rounded-full z-0",
+            brand === "skwezed" ? "bg-[#F3DB5B]" : "bg-[#1c1c1c] dark:bg-white"
+          )}
+        />
+      )}
+      <button
+        onClick={onClick}
+        className={clsx(
+          "cursor-pointer relative z-10 px-3 py-1 text-sm text-center rounded-full transition duration-200",
+          isActive
+            ? brand === "skwezed"
+              ? "text-black font-semibold"
+              : "text-white dark:text-black font-semibold"
+            : brand === "skwezed"
+            ? "bg-green-900/20 text-white hover:bg-gray-100"
+            : "bg-transparent hover:bg-gray-200 hover:text-black"
+        )}
+      >
+        {zip}
+      </button>
+    </div>
+  );
+});
+
+export function SideZipcodeFilter() {
   const { allZips, loadingZips } = useContactList();
   const { brand } = useBrand();
   const {
@@ -62,32 +112,38 @@ export function ZipCodeList() {
   }
 
   return (
-    <div className="p-4">
+    <div className="pt-2">
       <span
         className={clsx(
           "h-[1px] w-full bg-gray-200 dark:bg-zinc-800 block mb-4",
           brand === "skwezed" && "bg-muted/20"
         )}
       />
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between p-4">
         <p
           className={clsx(
-            "mb-3 font-semibold text-sm",
+            "font-semibold text-sm",
             brand === "skwezed" && "text-white"
           )}
         >
-          Zip Codes
+          Filter Zipcode
         </p>
 
         {selectedZip && (
           <button
             onClick={() => {
               setSelectedZip(null);
-              fetchPage(1, selectedStatus, query);
+              fetchPage(1, selectedStatus, query, undefined, null);
             }}
-            className="cursor-pointer text-xs text-muted-foreground mb-2 hover:text-black dark:hover:text-white"
+            className="cursor-pointer text-xs text-muted-foreground hover:text-gray-200 dark:hover:bg-[#333]
+          dark:hover:text-white px-2 py-1 hover:bg-[#1c1c1c] rounded-xs transition duration-200
+          flex items-center gap-1 group"
           >
-            Clear zipcode x
+            Clear Zipcode{" "}
+            <X
+              className="text-white bg-[#1c1c1c] p-[2px] w-4 h-4 rounded-xs
+          dark:bg-gray-200 dark:text-black group-hover:bg-gray-200 group-hover:text-black"
+            />
           </button>
         )}
       </div>
@@ -95,29 +151,34 @@ export function ZipCodeList() {
       {zipCodes.length === 0 ? (
         <p className="text-sm text-muted-foreground">No zip codes available</p>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2 p-4 md:p-0 place-items-center">
           {zipCodes.map((zip) => {
             const isActive = selectedZip === zip;
             return (
-              <button
-                key={zip}
-                onClick={() => {
-                  setSelectedZip(zip);
-                  fetchPage(1, selectedStatus, query, undefined, zip);
-                }}
-                className={clsx(
-                  "cursor-pointer text-xs w-full text-center px-3 py-1 rounded-full transition duration-200",
-                  isActive
-                    ? brand === "skwezed"
-                      ? "bg-[#F3DB5B] text-black font-semibold"
-                      : "bg-[#333] text-white dark:bg-white dark:text-black font-semibold"
-                    : brand === "skwezed"
-                    ? "bg-green-900/20 text-white hover:bg-gray-100"
-                    : "bg-gray-200 dark:bg-[#333] dark:text-gray-300 hover:bg-gray-200 hover:text-black"
+              <div key={zip} className="relative">
+                {isActive && (
+                  <motion.div
+                    layoutId="zip-pill"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className={clsx(
+                      "absolute inset-0 rounded-full z-0",
+                      brand === "skwezed"
+                        ? "bg-[#F3DB5B]"
+                        : "bg-[#1c1c1c] dark:bg-white"
+                    )}
+                  />
                 )}
-              >
-                {zip}
-              </button>
+                <ZipButton
+                  key={zip}
+                  zip={zip}
+                  isActive={selectedZip === zip}
+                  onClick={() => {
+                    setSelectedZip(zip);
+                    fetchPage(1, selectedStatus, query, undefined, zip);
+                  }}
+                  brand={brand}
+                />
+              </div>
             );
           })}
         </div>

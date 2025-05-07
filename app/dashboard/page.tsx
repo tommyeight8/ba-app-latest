@@ -6,6 +6,8 @@ import { ContactCardGrid } from "@/components/ContactCardList";
 import SearchAndFilter from "@/components/SearchAndFilter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { CreateContactModal } from "@/components/CreateContactModal";
+import { Icon123 } from "@tabler/icons-react";
 
 export default function DashboardPageContent() {
   const {
@@ -23,11 +25,13 @@ export default function DashboardPageContent() {
   } = useContactContext();
 
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
-
-  console.log(contacts)
+  const [openContactModal, setOpenContactModal] = useState(false);
 
   useEffect(() => {
-    fetchPage(1, "all", "").then(() => setHasLoadedOnce(true));
+    // fetchPage(1, "all", "").then(() => setHasLoadedOnce(true));
+    fetchPage(1, selectedStatus, query, undefined, selectedZip).then(() =>
+      setHasLoadedOnce(true)
+    );
   }, []);
 
   return (
@@ -49,8 +53,21 @@ export default function DashboardPageContent() {
           ))}
         </div>
       ) : contacts.length === 0 && hasLoadedOnce ? (
-        <div className="text-center text-muted-foreground py-10">
+        <div className="text-center py-10 flex flex-col justify-center items-center gap-2">
           No contacts found.
+          <>
+            <button
+              onClick={() => setOpenContactModal(true)}
+              className="cursor-pointer px-3 py-1 border border-green-400 text-green-400 
+              hover:bg-green-400 hover:text-black transition duration-200 rounded-sm"
+            >
+              + New Contact
+            </button>
+            <CreateContactModal
+              open={openContactModal}
+              setOpen={setOpenContactModal}
+            />
+          </>
         </div>
       ) : (
         <>
@@ -60,7 +77,14 @@ export default function DashboardPageContent() {
             <Button
               onClick={() => {
                 setSelectedZip(null); // ← clear ZIP filtering
-                fetchPage(page - 1, selectedStatus, query);
+                // fetchPage(page - 1, selectedStatus, query);
+                fetchPage(
+                  page - 1,
+                  selectedStatus,
+                  query,
+                  undefined,
+                  selectedZip
+                );
               }}
               disabled={page <= 1 || loadingContacts}
             >
@@ -70,7 +94,14 @@ export default function DashboardPageContent() {
             <Button
               onClick={() => {
                 if (selectedZip) return;
-                fetchPage(page + 1, selectedStatus, query);
+                // fetchPage(page + 1, selectedStatus, query);
+                fetchPage(
+                  page + 1,
+                  selectedStatus,
+                  query,
+                  undefined,
+                  selectedZip
+                );
               }}
               disabled={!hasNext || loadingContacts || !!selectedZip}
             >

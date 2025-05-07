@@ -134,18 +134,6 @@ export function EditContactModal({ showDetails }: Props) {
     } else {
       toast.error(result.message || "Update failed.");
     }
-
-    // const result = await updateContactIfMatch(contactId, updatedFields, brand);
-    // setIsSubmitting(false);
-
-    // if (result.success) {
-    //   toast.success("Contact updated!");
-    //   await mutateContact?.();
-    //   // await fetchPage(page); ❌ REMOVE THIS
-    //   setOpen(false);
-    // } else {
-    //   toast.error(result.message || "Update failed.");
-    // }
   };
 
   return (

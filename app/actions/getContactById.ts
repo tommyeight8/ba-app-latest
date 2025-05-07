@@ -23,6 +23,7 @@ export async function getContactById(
     "ba_email",
     "hs_lead_status",
     "l2_lead_status",
+    "hubspot_owner_id",
   ];
 
   const params = new URLSearchParams({

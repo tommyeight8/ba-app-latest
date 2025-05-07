@@ -42,7 +42,7 @@ export function NavMain({
           {items.map((item) => {
             const isActive = pathname === item.url;
             return (
-              <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.title} className="my-0.5">
                 <Link href={item.url}>
                   <SidebarMenuButton
                     tooltip={item.title}
@@ -53,7 +53,9 @@ export function NavMain({
                       }`,
                       isActive &&
                         `${
-                          brand === "skwezed" ? "bg-gray-100" : "bg-gray-200"
+                          brand === "skwezed"
+                            ? "bg-gray-100"
+                            : "bg-gray-200 hover:bg-gray-300"
                         } dark:bg-white ${
                           brand === "skwezed" ? "text-black" : "text-black"
                         } dark:hover:text-black`

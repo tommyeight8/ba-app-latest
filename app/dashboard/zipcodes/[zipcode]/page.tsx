@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { IconMapPin } from "@tabler/icons-react";
 import { cookies } from "next/headers";
 import { ContactCard } from "@/components/ContactCard";
+import SearchAndFilter from "@/components/SearchAndFilter";
 
 export const dynamic = "force-dynamic";
 
@@ -51,8 +52,6 @@ export default async function ContactsByZipPage({
     brand
   );
 
-  console.log(results)
-
   if (!results || results.length === 0) {
     notFound();
   }
@@ -69,14 +68,14 @@ export default async function ContactsByZipPage({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {results.map((contact: HubSpotContact) => {
-          console.log(contact.id)
+          console.log(contact.id);
           return (
             <ContactCard
-            key={`${contact.id}-${contact.properties.l2_lead_status}`}
-            contact={contact}
-            href={contact.id}
-          />
-          )
+              key={`${contact.id}-${contact.properties.l2_lead_status}`}
+              contact={contact}
+              href={contact.id}
+            />
+          );
         })}
       </div>
     </main>

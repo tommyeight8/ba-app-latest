@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function ZipCodeLinkListSkeleton({ count = 10 }: { count?: number }) {
   return (
     <div className="p-4">
-      <Skeleton className="h-4 w-24 bg-gray-200 mb-3 rounded" />
+      <Skeleton className="h-4 w-24 bg-gray-200 dark:bg-zinc-800 mb-3 rounded" />
       <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
         {Array.from({ length: count }).map((_, i) => (
           <Skeleton

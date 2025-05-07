@@ -24,24 +24,24 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <BrandProvider>
-      <ContactProvider>
-        <ContactListProvider>
-          <ContactEditProvider>
-            <LogMeetingModalProvider>
-            <NextThemesProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-              
-              <EditContactModal showDetails={false} />
-              <LogMeetingModal />
-            </NextThemesProvider>
-            </LogMeetingModalProvider>
-          </ContactEditProvider>
-        </ContactListProvider>
+        <ContactProvider>
+          <ContactListProvider>
+            <ContactEditProvider>
+              <LogMeetingModalProvider>
+                <NextThemesProvider
+                  attribute="class"
+                  defaultTheme="system"
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  {children}
+
+                  <EditContactModal showDetails={false} />
+                  <LogMeetingModal />
+                </NextThemesProvider>
+              </LogMeetingModalProvider>
+            </ContactEditProvider>
+          </ContactListProvider>
         </ContactProvider>
       </BrandProvider>
     </SessionProvider>

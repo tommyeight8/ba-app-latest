@@ -20,7 +20,6 @@ import { useBrand } from "./BrandContext";
 
 import { usePathname } from "next/navigation";
 
-
 type ContactContextType = {
   contacts: HubSpotContact[];
   setContacts: React.Dispatch<React.SetStateAction<HubSpotContact[]>>;
@@ -95,7 +94,6 @@ export function ContactProvider({ children }: { children: ReactNode }) {
 
   const pathname = usePathname();
 
-
   const [selectedContact, setSelectedContact] = useState<HubSpotContact | null>(
     null
   );
@@ -162,15 +160,35 @@ export function ContactProvider({ children }: { children: ReactNode }) {
       }
 
       // ✅ Zip code filtering
-      if (zip && zip !== "all") {
+      if ((zip && zip !== "all") || status !== "all" || query.length >= 2) {
         const all = await fetchAllContactsByEmail(session.user.email, brand);
-        const filtered = all.filter(
-          (c: HubSpotContact) =>
-            c.properties?.zip?.toString().trim() === zip.trim()
-        );
+
+        let filtered = all;
+
+        if (zip && zip !== "all") {
+          filtered = filtered.filter(
+            (c) => c.properties?.zip?.toString().trim() === zip.trim()
+          );
+        }
+
+        if (status !== "all") {
+          filtered = filtered.filter(
+            (c) =>
+              c.properties?.l2_lead_status?.toLowerCase() ===
+              status.toLowerCase()
+          );
+        }
+
+        if (query.length >= 2) {
+          filtered = filtered.filter((c) =>
+            c.properties?.company
+              ?.toLowerCase()
+              .includes(query.trim().toLowerCase())
+          );
+        }
 
         setContacts(filtered);
-        setHasNext(false); // ✅ Disable only in ZIP filtering mode
+        setHasNext(false);
         setPage(1);
         return;
       }
