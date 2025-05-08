@@ -4,11 +4,11 @@ import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
 export const dynamic = "force-dynamic";
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params; // ✅ await the promise
   const cookieStore = await cookies();
   const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
     | "litto"

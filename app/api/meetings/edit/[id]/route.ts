@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic"; // ✅ required for dynamic API routes
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+export async function GET(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params; // ✅ await the promise
   const { title, body, outcome } = await req.json();
 
   const cookieStore = await cookies();
