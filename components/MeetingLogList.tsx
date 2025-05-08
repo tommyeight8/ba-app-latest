@@ -87,14 +87,14 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
     return (
       <div
         key={meeting.id}
-        className="border border-gray-200 dark:border-zinc-700 p-4 rounded shadow-sm flex flex-col mb-4"
+        className="border border-muted bg-muted/50 dark:bg-muted/50 p-4 rounded shadow-sm flex flex-col mb-4"
       >
         <div
           onClick={() => toggleCollapse(meeting.id)}
           className="flex justify-between items-start cursor-pointer hover:opacity-80 transition duration-150"
         >
           {/* <h4 className="text-md font-semibold">{title}</h4> */}
-          <h4 className="text-md font-semibold text-gray-600 dark:text-gray-200 capitalize flex items-center gap-1">
+          <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-200 capitalize flex items-center gap-1">
             <IconCalendarWeekFilled size={16} />
             {moment(meeting.properties.hs_timestamp).fromNow()} ·{" "}
             <span className="font-normal capitalize text-gray-400 dark:text-gray-500 text-sm">

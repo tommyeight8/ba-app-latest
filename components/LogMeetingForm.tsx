@@ -73,16 +73,16 @@ export function LogMeetingForm({
     defaultValues: {
       newFirstName: contactFirstName || "",
       jobTitle: contactJobTitle || "",
-      l2Status: ([
-        "pending visit",
-        "visit requested by rep",
-        "dropped off",
-      ].includes(contactStatus ?? "")
-        ? contactStatus
-        : "pending visit") as
-        | "pending visit"
-        | "visit requested by rep"
-        | "dropped off",
+      // l2Status: ([
+      //   "pending visit",
+      //   "visit requested by rep",
+      //   "dropped off",
+      // ].includes(contactStatus ?? "")
+      //   ? contactStatus
+      //   : "pending visit") as
+      //   | "pending visit"
+      //   | "visit requested by rep"
+      //   | "dropped off",
       body: `
       Topic discussed
       -
