@@ -58,11 +58,11 @@ export function ContactCard({
     <>
       <Card
         onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
-        className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0"
+        className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0 dark:bg-muted/50"
       >
         <div className="cursor-pointer flex-grow">
           <CardContent className="p-4 flex flex-col gap-2">
-            <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-gray-200 p-2 rounded">
+            <div className="font-bold uppercase text-md bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-gray-100 p-3 rounded">
               {company ?? "-"}
             </div>
 
@@ -85,7 +85,7 @@ export function ContactCard({
 
         <div className="flex gap-1 px-4 pb-4">
           <button
-            className="text-md cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
+            className="text-sm cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
             onClick={(e) => {
               e.stopPropagation();
               setSelectedContact(contact);
@@ -96,7 +96,7 @@ export function ContactCard({
           </button>
 
           <button
-            className="text-md cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
+            className="text-sm cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
             onClick={(e) => {
               e.stopPropagation(); // Prevent card click
               setLogOpen(true);

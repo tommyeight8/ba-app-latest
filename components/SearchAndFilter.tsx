@@ -108,7 +108,7 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search store"
-            className="w-full pr-20"
+            className="w-full pr-20 bg-white"
           />
 
           {query && (

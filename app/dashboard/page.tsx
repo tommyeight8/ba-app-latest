@@ -35,7 +35,7 @@ export default function DashboardPageContent() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6 p-1 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
+    <div className="flex flex-col gap-6 p-4 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
       <SearchAndFilter />
 
       {loadingContacts ? (
