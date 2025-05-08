@@ -1,11 +1,14 @@
 import ContactPageClient from "@/components/ContactPageClient";
 
-type PageProps = {
-  params: {
-    id: string;
-  };
+type Params = {
+  id: string;
 };
 
-export default function ContactPage({ params }: PageProps) {
-  return <ContactPageClient id={params.id} />;
+type Props = {
+  params: Promise<Params>;
+};
+
+export default async function ContactPage({ params }: Props) {
+  const { id } = await params;
+  return <ContactPageClient id={id} />;
 }
