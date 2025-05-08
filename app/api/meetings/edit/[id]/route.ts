@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic"; // ✅ required for dynamic API routes
 
-export async function GET(
+export async function PATCH(
   req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
