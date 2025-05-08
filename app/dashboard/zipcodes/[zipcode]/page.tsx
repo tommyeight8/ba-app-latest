@@ -6,6 +6,7 @@ import { IconMapPin } from "@tabler/icons-react";
 import { cookies } from "next/headers";
 import { ContactCard } from "@/components/ContactCard";
 import SearchAndFilter from "@/components/SearchAndFilter";
+import { useBrand } from "@/context/BrandContext";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +25,7 @@ export default async function ContactsByZipPage({
   const zipCode = decodeURIComponent(zipRaw);
   const currentPage = parseInt(searchParams?.page || "1", 10);
 
-  const cookieStore = await cookies();
-  const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
-    | "litto"
-    | "skwezed";
+  const { brand } = useBrand();
 
   // Fetch paginated cursor until desired page
   const cursors: string[] = [""];
