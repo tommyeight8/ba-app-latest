@@ -23,6 +23,8 @@ export function LogMeetingModal({
 
   if (!contactId || !logContactData) return null;
 
+  console.log("Log Modal: ", logListRef);
+
   return (
     <Dialog open={logOpen} onOpenChange={setLogOpen}>
       <DialogContent className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto">
@@ -43,12 +45,16 @@ export function LogMeetingModal({
           // onSuccess={() => {
           //   setLogOpen(false);
           // }}
-          onSuccess={(newMeeting) => {
-            // ✅ Optimistically add the meeting
-            // logListRef.current?.addOptimisticMeeting?.(newMeeting);
-            if (logListRef?.current) {
-              logListRef.current.addOptimisticMeeting?.(newMeeting);
-            }
+          onSuccess={(meetingFromServer) => {
+            console.log("🔥 calling addOptimisticMeeting");
+
+            const formatted = {
+              id: meetingFromServer.id || `temp-${Date.now()}`,
+              properties: meetingFromServer.properties, // Ensure this structure matches what your UI expects
+            };
+
+            logListRef?.current?.addOptimisticMeeting?.(formatted);
+            logListRef?.current?.refetch?.(); // Optional if backend is slow
             refetchContact?.();
             setLogOpen(false);
           }}

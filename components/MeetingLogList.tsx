@@ -57,12 +57,24 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
   // useImperativeHandle(ref, () => ({
   //   refetch: fetchMeetings,
   // }));
+  // ✅ Add this to support optimistic update
+  const addOptimisticMeeting = (newMeeting: any) => {
+    console.log("🧪 Optimistic newMeeting", newMeeting);
+
+    const meetingWithId = {
+      ...newMeeting,
+      id: newMeeting.id || `temp-${Date.now()}`, // Fallback temp ID
+    };
+
+    setMeetings((prev) => [meetingWithId, ...prev]);
+  };
+
   useImperativeHandle(ref, () => ({
     refetch: fetchMeetings,
-    addOptimisticMeeting: (newMeeting: any) => {
-      setMeetings((prev) => [newMeeting, ...prev]);
-    },
+    addOptimisticMeeting,
   }));
+
+  console.log(meetings);
 
   useEffect(() => {
     fetchMeetings();
@@ -154,13 +166,6 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
               className="border border-gray-200 dark:border-zinc-700 p-4 rounded shadow-sm mb-4 space-y-3"
             >
               <Skeleton className="h-5 w-3/4 rounded" />
-              <Skeleton className="h-4 w-full rounded" />
-              <Skeleton className="h-4 w-5/6 rounded" />
-              <Skeleton className="h-4 w-1/2 rounded mt-2" />
-              <div className="mt-auto flex gap-2 justify-end pt-2">
-                <Skeleton className="h-8 w-20 rounded" />
-                <Skeleton className="h-8 w-20 rounded" />
-              </div>
             </div>
           ))}
         </div>
@@ -171,13 +176,6 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
               className="border border-gray-200 dark:border-zinc-700 p-4 rounded shadow-sm mb-4 space-y-3"
             >
               <Skeleton className="h-5 w-3/4 rounded" />
-              <Skeleton className="h-4 w-full rounded" />
-              <Skeleton className="h-4 w-5/6 rounded" />
-              <Skeleton className="h-4 w-1/2 rounded mt-2" />
-              <div className="mt-auto flex gap-2 justify-end pt-2">
-                <Skeleton className="h-8 w-20 rounded" />
-                <Skeleton className="h-8 w-20 rounded" />
-              </div>
             </div>
           ))}
         </div>

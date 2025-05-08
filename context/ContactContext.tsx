@@ -110,6 +110,109 @@ export function ContactProvider({ children }: { children: ReactNode }) {
       query.trim().toLowerCase() || "none"
     }`;
 
+  // const fetchPage = async (
+  //   pageNum: number,
+  //   status: string = "all",
+  //   query: string = "",
+  //   updater?: (prev: HubSpotContact[]) => HubSpotContact[],
+  //   zip?: string | null
+  // ) => {
+  //   if (!session?.user?.email) return;
+
+  //   if (updater) {
+  //     setContacts((prev) => updater(prev));
+  //     setPage(pageNum);
+  //     return;
+  //   }
+
+  //   setLoadingContacts(true);
+  //   const cursorKey = getCursorKey(pageNum, status, query);
+  //   const cursor = cursors[cursorKey] ?? "";
+
+  //   try {
+  //     let res;
+
+  //     if (query.length >= 2) {
+  //       const result = await searchContactsByCompany(
+  //         query,
+  //         cursor,
+  //         12,
+  //         session.user.email,
+  //         brand
+  //       );
+  //       res = { results: result.results, next: result.paging ?? null };
+  //     } else if (status !== "all") {
+  //       const result = await searchContactsByStatus(
+  //         status,
+  //         cursor,
+  //         12,
+  //         session.user.email,
+  //         brand
+  //       );
+  //       res = { results: result.results, next: result.paging ?? null };
+  //     } else {
+  //       res = await fetchHubSpotContactsPaginated(
+  //         12,
+  //         cursor,
+  //         session.user.email,
+  //         brand
+  //       );
+  //     }
+
+  //     // ✅ Zip code filtering
+  //     if ((zip && zip !== "all") || status !== "all" || query.length >= 2) {
+  //       const all = await fetchAllContactsByEmail(session.user.email, brand);
+
+  //       let filtered = all;
+
+  //       if (zip && zip !== "all") {
+  //         filtered = filtered.filter(
+  //           (c) => c.properties?.zip?.toString().trim() === zip.trim()
+  //         );
+  //       }
+
+  //       if (status !== "all") {
+  //         filtered = filtered.filter(
+  //           (c) =>
+  //             c.properties?.l2_lead_status?.toLowerCase() ===
+  //             status.toLowerCase()
+  //         );
+  //       }
+
+  //       if (query.length >= 2) {
+  //         filtered = filtered.filter((c) =>
+  //           c.properties?.company
+  //             ?.toLowerCase()
+  //             .includes(query.trim().toLowerCase())
+  //         );
+  //       }
+
+  //       setContacts(filtered);
+  //       setHasNext(false);
+  //       setPage(1);
+  //       return;
+  //     }
+
+  //     let filtered = res.results ?? [];
+
+  //     setContacts(filtered); // ✅ You need this!
+
+  //     setHasNext(!!res.next);
+
+  //     if (res.next) {
+  //       setCursors((prev) => ({
+  //         ...prev,
+  //         [getCursorKey(pageNum + 1, status, query)]: res.next!,
+  //       }));
+  //     }
+
+  //     setPage(pageNum);
+  //   } catch (err) {
+  //     console.error("Error fetching contacts:", err);
+  //   } finally {
+  //     setLoadingContacts(false);
+  //   }
+  // };
   const fetchPage = async (
     pageNum: number,
     status: string = "all",
@@ -132,45 +235,14 @@ export function ContactProvider({ children }: { children: ReactNode }) {
     try {
       let res;
 
-      if (query.length >= 2) {
-        const result = await searchContactsByCompany(
-          query,
-          cursor,
-          12,
-          session.user.email,
-          brand
-        );
-        res = { results: result.results, next: result.paging ?? null };
-      } else if (status !== "all") {
-        const result = await searchContactsByStatus(
-          status,
-          cursor,
-          12,
-          session.user.email,
-          brand
-        );
-        res = { results: result.results, next: result.paging ?? null };
-      } else {
-        res = await fetchHubSpotContactsPaginated(
-          12,
-          cursor,
-          session.user.email,
-          brand
-        );
-      }
-
-      // ✅ Zip code filtering
-      if ((zip && zip !== "all") || status !== "all" || query.length >= 2) {
+      // ✅ Fallback to client-side filtering ONLY if zip is applied
+      if (zip && zip !== "all") {
         const all = await fetchAllContactsByEmail(session.user.email, brand);
+        let filtered = all.filter(
+          (c) => c.properties?.zip?.toString().trim() === zip.trim()
+        );
 
-        let filtered = all;
-
-        if (zip && zip !== "all") {
-          filtered = filtered.filter(
-            (c) => c.properties?.zip?.toString().trim() === zip.trim()
-          );
-        }
-
+        // Optional: apply status and query filters on top of zip
         if (status !== "all") {
           filtered = filtered.filter(
             (c) =>
@@ -188,15 +260,43 @@ export function ContactProvider({ children }: { children: ReactNode }) {
         }
 
         setContacts(filtered);
-        setHasNext(false);
+        setHasNext(false); // disable Next button
         setPage(1);
         return;
       }
 
-      let filtered = res.results ?? [];
+      // ✅ Server-side filtering and pagination
+      if (query.length >= 2) {
+        const result = await searchContactsByCompany(
+          query,
+          cursor,
+          12,
+          session.user.email,
+          brand
+        );
+        // res = { results: result.results, next: result.paging ?? null };
+        res = { results: result.results, next: result.paging ?? null };
+      } else if (status !== "all") {
+        const result = await searchContactsByStatus(
+          status,
+          cursor,
+          12,
+          session.user.email,
+          brand
+        );
+        // res = { results: result.results, next: result.paging ?? null };
+        res = { results: result.results, next: result.paging ?? null };
+      } else {
+        res = await fetchHubSpotContactsPaginated(
+          12,
+          cursor,
+          session.user.email,
+          brand
+        );
+      }
 
-      setContacts(filtered); // ✅ You need this!
-
+      const filtered = res.results ?? [];
+      setContacts(filtered);
       setHasNext(!!res.next);
 
       if (res.next) {
@@ -227,6 +327,8 @@ export function ContactProvider({ children }: { children: ReactNode }) {
       ]);
 
       if (paginatedRes.results) setContacts(paginatedRes.results);
+      // setHasNext(!!paginatedRes.paging);
+      setHasNext(!!paginatedRes.next);
 
       const zipSet = new Set(
         allRes
@@ -244,7 +346,7 @@ export function ContactProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (status === "authenticated") {
-      setContacts([]);
+      // setContacts([]);
       setAllZips([]);
       setCursors({});
       refetchContacts();
@@ -258,9 +360,9 @@ export function ContactProvider({ children }: { children: ReactNode }) {
       setSelectedStatus("all");
       setSelectedZip(null);
       setPage(1);
-      setContacts([]);
+      // setContacts([]);
       setZipContacts([]);
-      setHasNext(false);
+      // setHasNext(false);
       setSelectedContact(null);
       setEditOpen(false);
       setLogOpen(false);

@@ -8,8 +8,9 @@ export async function fetchMeetingsByContact(
 ) {
   const { baseUrl, token } = getHubspotCredentials(brand);
 
-  const response = await fetch(
-    `${baseUrl}/crm/v3/objects/meetings?associations=contact&properties=hs_meeting_title,hs_meeting_body,hs_timestamp,hs_meeting_outcome&limit=50`,
+  // Step 1: Fetch associated meeting IDs for the contact
+  const assocRes = await fetch(
+    `${baseUrl}/crm/v3/objects/contacts/${contactId}/associations/meetings`,
     {
       method: "GET",
       headers: {
@@ -19,23 +20,47 @@ export async function fetchMeetingsByContact(
     }
   );
 
-  const data = await response.json();
+  const assocData = await assocRes.json();
 
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to fetch meetings");
+  if (!assocRes.ok) {
+    throw new Error(
+      assocData.message || "Failed to fetch meeting associations"
+    );
   }
 
-  const meetings = data.results
-    .filter((meeting: any) => {
-      return meeting.associations?.contacts?.results?.some(
-        (c: any) => c.id === contactId
-      );
-    })
-    .sort((a: any, b: any) => {
-      const timeA = new Date(a.properties?.hs_timestamp || 0).getTime();
-      const timeB = new Date(b.properties?.hs_timestamp || 0).getTime();
-      return timeB - timeA; // DESCENDING
-    });
+  const meetingIds = assocData.results?.map((r: any) => r.id) ?? [];
+  if (!meetingIds.length) return [];
 
-  return meetings;
+  // Step 2: Fetch full meeting data using batch read
+  const detailsRes = await fetch(
+    `${baseUrl}/crm/v3/objects/meetings/batch/read`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        properties: [
+          "hs_meeting_title",
+          "hs_meeting_body",
+          "hs_timestamp",
+          "hs_meeting_outcome",
+        ],
+        inputs: meetingIds.map((id: string) => ({ id })),
+      }),
+    }
+  );
+
+  const detailsData = await detailsRes.json();
+
+  if (!detailsRes.ok) {
+    throw new Error(detailsData.message || "Failed to fetch meeting details");
+  }
+
+  return (detailsData.results ?? []).sort((a: any, b: any) => {
+    const timeA = new Date(a.properties?.hs_timestamp || 0).getTime();
+    const timeB = new Date(b.properties?.hs_timestamp || 0).getTime();
+    return timeB - timeA; // DESCENDING
+  });
 }

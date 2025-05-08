@@ -71,7 +71,7 @@ export default function DashboardPageContent() {
         </div>
       ) : (
         <>
-          <ContactCardGrid contacts={contacts} />
+          <ContactCardGrid />
 
           <div className="ml-auto flex items-center gap-4 text-sm">
             <Button
@@ -103,7 +103,7 @@ export default function DashboardPageContent() {
                   selectedZip
                 );
               }}
-              disabled={!hasNext || loadingContacts || !!selectedZip}
+              disabled={!hasNext || loadingContacts}
             >
               <ArrowRight />
             </Button>

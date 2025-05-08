@@ -40,16 +40,19 @@ export type UserLoginValues = z.infer<typeof UserLoginSchema>;
 // export type ContactSchema = z.infer<typeof contactSchema>;
 
 export const ContactSchema = z.object({
-  firstname: z.string().min(1, "First name is required"),
-  lastname: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().optional(),
-  jobtitle: z.string().optional(),
-  company: z.string().optional(),
-  address: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zip: z.string().min(3, "ZIP Code is too short"),
+  firstname: z.string().trim().min(1, "First name is required"),
+  lastname: z.string().trim().min(1, "Last name is required"),
+  email: z.string().trim().email("Invalid email address"),
+  // phone: z.string().trim().optional(),
+  jobtitle: z.string().trim().optional(),
+  company: z.string().trim().optional(),
+  address: z.string().trim().optional(),
+  city: z.string().trim().optional(),
+  state: z.string().trim().optional(),
+  zip: z.string().trim().min(3, "ZIP Code is too short"),
+  phone: z
+    .string()
+    .regex(/^\d{3}-\d{3}-\d{4}$/, "Phone must be in 123-456-7890 format"),
 
   hs_lead_status: z.enum([
     "NEW",

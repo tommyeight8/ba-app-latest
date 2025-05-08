@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 import { ContactSchema, CreateContactFormValues } from "@/lib/schemas";
-import { getHubspotOwners } from "./getHubspotOwners"; // ✅ import your function
+import { getHubspotOwners } from "./getHubspotOwners";
 
 export async function createNewContact(
   input: CreateContactFormValues,
@@ -17,12 +17,18 @@ export async function createNewContact(
     return { success: false, message: "Unauthorized: You must be logged in." };
   }
 
-  // ✅ Get first owner
-  let firstOwnerId: string | undefined;
+  // ✅ Get preferred or fallback owner
+  let selectedOwnerId: string | undefined;
+
   try {
     const owners = await getHubspotOwners(brand);
-    firstOwnerId = owners?.[0]?.id;
-    if (!firstOwnerId) {
+    const hempOwner = owners.find(
+      (owner: any) => owner.email?.toLowerCase() === "hemp@itslitto.com"
+    );
+
+    selectedOwnerId = hempOwner?.id || owners?.[0]?.id;
+
+    if (!selectedOwnerId) {
       return { success: false, message: "No HubSpot owners found." };
     }
   } catch (error) {
@@ -35,7 +41,7 @@ export async function createNewContact(
     ba_email: baEmail,
     hs_lead_status: "Samples",
     l2_lead_status: "pending visit",
-    hubspot_owner_id: firstOwnerId,
+    hubspot_owner_id: selectedOwnerId,
   });
 
   if (!parse.success) {
@@ -52,13 +58,7 @@ export async function createNewContact(
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        properties: parse.data,
-        // properties: {
-        //   ...parse.data,
-        //   hubspot_owner_id: firstOwnerId,
-        // },
-      }),
+      body: JSON.stringify({ properties: parse.data }),
     });
 
     if (!response.ok) {

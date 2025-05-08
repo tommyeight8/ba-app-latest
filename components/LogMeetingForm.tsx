@@ -24,6 +24,7 @@ import Spinner from "@/components/Spinner";
 import { useBrand } from "@/context/BrandContext";
 import { OwnerSelect } from "./OwnerSelector";
 import { useContactList } from "@/context/ContactListContext";
+import { useContactContext } from "@/context/ContactContext";
 
 const formSchema = z.object({
   newFirstName: z.string().min(1, "First name is required"),
@@ -39,13 +40,17 @@ export function LogMeetingForm({
   contactFirstName,
   contactJobTitle,
   contactCompany,
+  contactStatus, // ✅ Add this
   onSuccess,
+  useGlobalList = false,
 }: {
   contactId: string;
   contactFirstName?: string;
   contactJobTitle?: string;
   contactCompany?: string;
+  contactStatus?: string; // ✅ Add this
   onSuccess?: (newMeeting: any) => void;
+  useGlobalList?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const { brand } = useBrand();
@@ -54,13 +59,30 @@ export function LogMeetingForm({
   // ✅ Pull contactData and setOpen from context
   const { contactData, setOpen } = useLogMeetingModal();
   const { mutateContact, refetchContactDetail } = useContactDetail(contactId);
-  const { setContacts } = useContactList();
+  // const { setContacts } = useContactList();
+  const {
+    setContacts: setGlobalContacts,
+    fetchPage,
+    selectedStatus,
+    query,
+  } = useContactContext(); // from global ContactContext
+  const { setContacts: setListContacts } = useContactList(); // from ContactListContext
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       newFirstName: contactFirstName || "",
       jobTitle: contactJobTitle || "",
+      l2Status: ([
+        "pending visit",
+        "visit requested by rep",
+        "dropped off",
+      ].includes(contactStatus ?? "")
+        ? contactStatus
+        : "pending visit") as
+        | "pending visit"
+        | "visit requested by rep"
+        | "dropped off",
       body: `
       Topic discussed
       -
@@ -92,8 +114,11 @@ export function LogMeetingForm({
         false
       );
 
+      // 🔥 conditionally update the list
+      const updateList = useGlobalList ? setGlobalContacts : setListContacts;
+
       // ✅ Optimistically update the global contact list
-      setContacts((prev) =>
+      updateList((prev) =>
         prev.map((c) =>
           c.id === contactData.id
             ? {
@@ -123,8 +148,28 @@ export function LogMeetingForm({
         ownerId: selectedOwnerId,
       })
         .then((newMeeting) => {
+          console.log("✅ onSuccess is about to run with:", newMeeting);
+
           toast.success("Meeting logged!");
           form.reset();
+
+          // ✅ Optimistic list update through context
+          fetchPage?.(1, selectedStatus, query, (prev) =>
+            prev.map((c) =>
+              c.id === contactId
+                ? {
+                    ...c,
+                    properties: {
+                      ...c.properties,
+                      firstname: values.newFirstName,
+                      jobtitle: values.jobTitle,
+                      l2_lead_status: values.l2Status,
+                    },
+                  }
+                : c
+            )
+          );
+
           mutateContact?.(); // Revalidate detail view
           refetchContactDetail?.(); // Re-fetch if needed elsewhere
           onSuccess?.(newMeeting); // Success passed new meeting
@@ -136,6 +181,8 @@ export function LogMeetingForm({
         });
     });
   };
+
+  console.log("IS GLOBAL", useGlobalList);
 
   return (
     <Form {...form}>

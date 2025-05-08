@@ -37,7 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                   {children}
 
                   <EditContactModal showDetails={false} />
-                  <LogMeetingModal />
+                  {/* <LogMeetingModal /> */}
                 </NextThemesProvider>
               </LogMeetingModalProvider>
             </ContactEditProvider>

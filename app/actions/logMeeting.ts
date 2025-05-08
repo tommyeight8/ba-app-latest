@@ -151,5 +151,31 @@ export async function logMeeting({
     throw new Error(data.message || "Failed to log meeting");
   }
 
-  return data;
+  // return data;
+  // ✅ Fetch full meeting details by ID for optimistic update
+  const meetingId = data.id;
+  const detailRes = await fetch(
+    `${baseUrl}/crm/v3/objects/meetings/${meetingId}?properties=hs_meeting_title,hs_meeting_body,hs_timestamp,hs_meeting_outcome`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!detailRes.ok) {
+    const err = await detailRes.json();
+    console.error("Failed to fetch full meeting details:", err);
+    throw new Error(err.message || "Failed to fetch meeting details");
+  }
+
+  const fullMeeting = await detailRes.json();
+  return {
+    ...fullMeeting,
+    properties: {
+      ...fullMeeting.properties,
+      l2Status, // manually add it back in
+    },
+  };
 }

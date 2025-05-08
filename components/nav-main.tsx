@@ -21,6 +21,7 @@ import { clsx } from "clsx";
 
 import Link from "next/link";
 import { useBrand } from "@/context/BrandContext";
+import { useContactContext } from "@/context/ContactContext";
 
 export function NavMain({
   items,
@@ -33,6 +34,13 @@ export function NavMain({
 }) {
   const pathname = usePathname();
   const { brand } = useBrand();
+  const { setQuery, setSelectedZip, setSelectedStatus } = useContactContext();
+
+  const handleReset = () => {
+    setQuery("");
+    setSelectedZip(null);
+    setSelectedStatus("all");
+  };
 
   return (
     <SidebarGroup>
@@ -43,7 +51,7 @@ export function NavMain({
             const isActive = pathname === item.url;
             return (
               <SidebarMenuItem key={item.title} className="my-0.5">
-                <Link href={item.url}>
+                <Link href={item.url} onClick={handleReset}>
                   <SidebarMenuButton
                     tooltip={item.title}
                     className={clsx(

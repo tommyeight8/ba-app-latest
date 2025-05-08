@@ -9,6 +9,9 @@ import { IconPencil, IconTextPlus } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLogMeetingModal } from "@/context/LogMeetingModalContext";
+import { useRef, useState } from "react";
+import { MeetingLogListRef } from "@/types/meeting";
+import { LogMeetingModalGlobal } from "./LogMeetingModalGlobal";
 
 export function ContactCard({
   contact,
@@ -17,20 +20,17 @@ export function ContactCard({
   contact: HubSpotContact;
   href: string;
 }) {
+  const [logOpen, setLogOpen] = useState(false);
+  const logListRef = useRef<MeetingLogListRef | null>(null);
+
   const router = useRouter();
   const {
     setSelectedContact,
     setEditOpen,
-    setLogOpen,
+    // setLogOpen,
     setContactId,
     setLogContactData,
   } = useContactContext();
-
-  const {
-    setOpen,
-    setContactId: setContactIdForMeeting,
-    setContactData,
-  } = useLogMeetingModal();
 
   const {
     email,
@@ -44,6 +44,7 @@ export function ContactCard({
     l2_lead_status,
   } = contact.properties;
 
+  const safeId = encodeURIComponent(contact.id ?? "");
   const validL2Statuses = [
     "pending visit",
     "visit requested by rep",
@@ -53,67 +54,67 @@ export function ContactCard({
     hs_lead_status === "Samples" &&
     validL2Statuses.includes(l2_lead_status ?? "");
 
-  const safeId = encodeURIComponent(contact.id ?? "");
-
   return (
-    <Card
-      onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
-      className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0"
-    >
-      <div
-        // onClick={() => router.push(`/dashboard/contacts/${href}`)}
-        className="cursor-pointer flex-grow"
+    <>
+      <Card
+        onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
+        className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0"
       >
-        <CardContent className="p-4 flex flex-col gap-2">
-          <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-gray-200 p-2 rounded">
-            {company ?? "-"}
-          </div>
+        <div className="cursor-pointer flex-grow">
+          <CardContent className="p-4 flex flex-col gap-2">
+            <div className="font-bold uppercase text-lg bg-gray-100 dark:bg-[#333] text-zinc-700 dark:text-gray-200 p-2 rounded">
+              {company ?? "-"}
+            </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Mail className="w-4 h-4" />
-            {email ?? "-"}
-          </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Mail className="w-4 h-4" /> {email ?? "-"}
+            </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Phone className="w-4 h-4" />
-            {phone ?? "-"}
-          </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Phone className="w-4 h-4" /> {phone ?? "-"}
+            </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4" />
-            {address ?? "-"} {city ?? "-"}, {state ?? "-"} {zip ?? "-"}
-          </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="w-4 h-4" /> {address ?? "-"} {city ?? "-"},{" "}
+              {state ?? "-"} {zip ?? "-"}
+            </div>
 
-          {showBadge && <StatusBadge status={l2_lead_status || "unknown"} />}
-        </CardContent>
-      </div>
+            {showBadge && <StatusBadge status={l2_lead_status || "unknown"} />}
+          </CardContent>
+        </div>
 
-      <div className="flex gap-1 px-4 pb-4">
-        <button
-          className="text-md cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            setSelectedContact(contact);
-            setEditOpen(true);
-          }}
-        >
-          <IconPencil size={18} />
-          Edit
-        </button>
+        <div className="flex gap-1 px-4 pb-4">
+          <button
+            className="text-md cursor-pointer flex items-center gap-1 p-2 text-green-400 hover:underline underline-offset-4"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedContact(contact);
+              setEditOpen(true);
+            }}
+          >
+            <IconPencil size={18} /> Edit
+          </button>
 
-        <button
-          className="text-md cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            setContactId(contact.id);
-            setLogContactData(contact);
-            setLogOpen(true);
-          }}
-        >
-          <IconTextPlus size={18} />
-          Log Meeting
-        </button>
-      </div>
-    </Card>
+          <button
+            className="text-md cursor-pointer flex items-center gap-1 p-2 text-gray-500 dark:text-gray-200 hover:underline underline-offset-4"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent card click
+              setLogOpen(true);
+            }}
+          >
+            <IconTextPlus size={18} /> Log Meeting
+          </button>
+        </div>
+      </Card>
+
+      {/* 🔥 Render modal outside card to avoid event bubbling */}
+      <LogMeetingModalGlobal
+        open={logOpen}
+        setOpen={setLogOpen}
+        contactId={contact.id}
+        contactData={contact}
+        logListRef={logListRef}
+      />
+    </>
   );
 }

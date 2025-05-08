@@ -18,6 +18,7 @@ import Link from "next/link";
 import { useBrand } from "@/context/BrandContext";
 import { ZipCodeLinkList } from "./ZipCodeLinkList";
 import { Button } from "./ui/button";
+import { useContactContext } from "@/context/ContactContext";
 
 export function AppSidebar({
   children,
@@ -26,11 +27,18 @@ export function AppSidebar({
   children?: React.ReactNode;
 }) {
   const { brand } = useBrand();
+  const { setQuery, setSelectedZip, setSelectedStatus } = useContactContext();
+
+  const handleReset = () => {
+    setQuery("");
+    setSelectedZip(null);
+    setSelectedStatus("all");
+  };
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className={`${brand === "skwezed" && "bg-[#009444]"} p-4`}>
-        <Link href={"/dashboard"} className="">
+        <Link href={"/dashboard"} onClick={handleReset} className="">
           {brand === "litto" ? (
             <Image
               src="/images/litto-logo-blk.webp"
