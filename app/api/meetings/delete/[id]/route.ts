@@ -4,10 +4,14 @@ import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
 export const dynamic = "force-dynamic";
 
-export async function DELETE(
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function DELETE(req: NextRequest) {
+  // Extract the [id] from the pathname
+  const id = req.nextUrl.pathname.split("/").pop();
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing ID in URL" }, { status: 400 });
+  }
+
   const cookieStore = await cookies();
   const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
     | "litto"
@@ -37,6 +41,7 @@ export async function DELETE(
     );
   }
 }
+
 
 // import { NextRequest, NextResponse } from "next/server";
 

@@ -2,13 +2,16 @@ import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export const dynamic = "force-dynamic"; // ✅ required for dynamic API routes
+export const dynamic = "force-dynamic"; // ✅ needed for dynamic route
 
-export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function PUT(req: NextRequest) {
+  // Extract the [id] from the pathname
+  const id = req.nextUrl.pathname.split("/").pop();
+
+  if (!id) {
+    return NextResponse.json({ error: "Missing ID in URL" }, { status: 400 });
+  }
+
   const { title, body, outcome } = await req.json();
 
   const cookieStore = await cookies();
@@ -35,6 +38,7 @@ export async function PUT(
     });
 
     const result = await res.json();
+
     if (!res.ok) {
       return NextResponse.json(
         { error: result.message },
@@ -47,6 +51,7 @@ export async function PUT(
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
 
 // import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 // import { NextRequest, NextResponse } from "next/server";
