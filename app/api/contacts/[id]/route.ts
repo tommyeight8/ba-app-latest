@@ -3,17 +3,16 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET(
-  _request: Request,
-  context: { params: { id: string } }
+  req: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { params } = context;
-  const cookieStore = await cookies(); // ✅ if cookies() returns a Promise
-
+  const { id } = await context.params; // ✅ await the promise
+  const cookieStore = await cookies(); // no await needed
   const brand = (cookieStore.get("selected_brand")?.value ?? "litto") as
     | "litto"
     | "skwezed";
 
-  const contact = await getContactById(params.id, brand);
+  const contact = await getContactById(id, brand);
 
   if (!contact) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
