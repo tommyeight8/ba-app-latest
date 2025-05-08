@@ -10,24 +10,30 @@ import { useBrand } from "@/context/BrandContext";
 
 export const dynamic = "force-dynamic";
 
+const PAGE_SIZE = 12;
+
 type Params = {
   zipcode: string;
 };
 
-type Props = {
-  params: Promise<Params>;
-  searchParams?: { page?: string };
+type SearchParams = {
+  page?: string;
 };
 
-const PAGE_SIZE = 12;
+type Props = {
+  params: Promise<Params>;
+  searchParams: Promise<SearchParams>;
+};
 
 export default async function ContactsByZipPage({
   params,
   searchParams,
 }: Props) {
   const { zipcode: zipRaw } = await params;
+  const { page } = await searchParams;
+
   const zipCode = decodeURIComponent(zipRaw);
-  const currentPage = parseInt(searchParams?.page || "1", 10);
+  const currentPage = parseInt(page || "1", 10);
 
   const { brand } = useBrand();
 
