@@ -44,7 +44,7 @@ export default function ContactsByZipPage() {
   return (
     <div className="md:p-6 min-h-screen p-4 w-full max-w-[1200px] mx-auto">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
-      <h1 className="font-bold my-8 flex items-center text-xl md:text-xl">
+      <h1 className="font-bold my-4 flex items-center text-xl md:text-xl">
         <IconMapPin className="text-zinc-400 dark:text-zinc-500 mr-2" />
         <span className="text-zinc-400 dark:text-zinc-500">Zip Code:</span>
         <span className="ml-1">{decodedZip}</span>

@@ -86,7 +86,7 @@ export default function ContactPageClient({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen h-full relative p-4 w-full max-w-[1200px] m-auto">
-      <div className="flex flex-col md:flex-row rounded-md gap-8 p-6 border border-muted bg-muted/50 dark:bg-black/30">
+      <div className="flex flex-col md:flex-row rounded-md gap-8 p-6 border border-muted bg-white dark:bg-black/30">
         <div
           className="hidden h-36 w-36 rounded-full md:flex m-auto items-center justify-center text-4xl md:text-[48px] font-bold uppercase transition-all duration-300 ease-in-out"
           style={{ backgroundColor: bg, color: text }}
@@ -163,11 +163,11 @@ export default function ContactPageClient({ id }: { id: string }) {
       </div>
 
       <div className="flex items-center gap-4 my-6">
-        <hr className="flex-grow border-t border-gray-200 dark:border-zinc-800" />
-        <div className="text-lg font-semibold whitespace-nowrap">
+        <hr className="flex-grow border-t border-gray-300 dark:border-zinc-900" />
+        <div className="text-lg font-semibold whitespace-nowrap dark:text-gray-100">
           Meeting Logs
         </div>
-        <hr className="flex-grow border-t border-gray-200 dark:border-zinc-800" />
+        <hr className="flex-grow border-t border-gray-300 dark:border-zinc-900" />
       </div>
 
       <MeetingLogList ref={logListRef} contactId={contact.id} />

@@ -8,6 +8,9 @@ import { useBrand } from "@/context/BrandContext";
 import { useContactContext } from "@/context/ContactContext";
 import { ZipcodeFilter } from "./ZipcodeFilter";
 
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+
+
 type Props = {
   showZipFilter?: boolean;
 };
@@ -46,7 +49,10 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
     "dropped off": "ring-green-400",
   };
 
-  const handleSearch = () => fetchPage(1, selectedStatus, query);
+  // const handleSearch = () => fetchPage(1, selectedStatus, query);
+
+  const debouncedQuery = useDebouncedValue(query, 800);
+
 
   const handleClear = () => {
     setQuery("");
@@ -62,6 +68,11 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
     }
   }, [brand]);
 
+  useEffect(() => {
+  fetchPage(1, selectedStatus, debouncedQuery, undefined, selectedZip);
+}, [debouncedQuery, selectedStatus, selectedZip]);
+
+
   return (
     <div className="flex flex-col w-full">
       <div className="flex flex-col xl:flex-row xl:items-center gap-4 xl:gap-2 w-full md:justify-between">
@@ -75,7 +86,7 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
                 onClick={() => {
                   setSelectedStatus(status);
                   // fetchPage(1, status, query);
-                  fetchPage(1, status, query, undefined, selectedZip);
+                  fetchPage(1, status, debouncedQuery, undefined, selectedZip);
                 }}
                 className={`px-3 py-1 rounded-full text-sm transition cursor-pointer ${
                   statusStyles[status]
@@ -106,7 +117,6 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             placeholder="Search store"
             className="w-full pr-20 bg-white"
           />
@@ -114,14 +124,14 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
           {query && (
             <button
               onClick={handleClear}
-              className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition"
+              className="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black transition"
               aria-label="Clear search"
             >
               <IconX size={16} />
             </button>
           )}
 
-          <button
+          {/* <button
             onClick={handleSearch}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white"
             aria-label="Search"
@@ -140,7 +150,7 @@ export default function SearchAndFilter({ showZipFilter = true }: Props) {
                 d="M21 21l-4.35-4.35M16 10a6 6 0 11-12 0 6 6 0 0112 0z"
               />
             </svg>
-          </button>
+          </button> */}
         </div>
       </div>
       {/* {showZipFilter && <ZipcodeFilter />} */}
