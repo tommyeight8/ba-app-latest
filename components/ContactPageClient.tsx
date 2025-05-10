@@ -58,7 +58,6 @@ export default function ContactPageClient({ id }: { id: string }) {
     { revalidateOnFocus: false }
   );
 
-  // if (!contact) return <div>Loading...</div>;
   if (!contact) {
     return (
       <div className="p-6 space-y-6 min-h-screen h-full">
@@ -83,6 +82,17 @@ export default function ContactPageClient({ id }: { id: string }) {
     const [first = "", second = ""] = company.trim().split(" ");
     return `${first[0] ?? ""}${second[0] ?? ""}`.toUpperCase();
   };
+
+  const fullAddress = `${contact.properties.address}, ${contact.properties.city}, ${contact.properties.state} ${contact.properties.zip}`;
+  const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    fullAddress
+  )}`;
+  const phoneLink = contact.properties.phone
+    ? `tel:${contact.properties.phone}`
+    : null;
+  const emailLink = contact.properties.email
+    ? `mailto:${contact.properties.email}`
+    : null;
 
   return (
     <div className="min-h-screen h-full relative p-4 w-full max-w-[1200px] m-auto">
@@ -109,25 +119,57 @@ export default function ContactPageClient({ id }: { id: string }) {
             />
           </div>
 
-          <div className="flex items-center gap-2 mt-4 dark:text-gray-300">
-            <IconMail size={18} />
-            {contact.properties?.email || "N/A"}
-          </div>
+          {/* Email */}
+<div className="flex items-center gap-2 mt-4 dark:text-gray-300">
+  <div className="p-2 rounded-full bg-gray-200 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition">
+    <IconMail size={18} />
+  </div>
+  {emailLink ? (
+    <a href={emailLink} className="hover:underline">
+      {contact.properties.email}
+    </a>
+  ) : (
+    "N/A"
+  )}
+</div>
 
+
+
+          {/* Phone */}
           <div className="flex items-center gap-2 dark:text-gray-300 my-1">
-            <IconDeviceMobile size={18} />
-            {contact.properties?.phone || "N/A"}
-          </div>
+  <div className="p-2 rounded-full bg-gray-200 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition">
+    <IconDeviceMobile size={18} />
+  </div>
+  {phoneLink ? (
+    <a href={phoneLink} className="hover:underline">
+      {contact.properties.phone}
+    </a>
+  ) : (
+    "N/A"
+  )}
+</div>
 
-          <div className="flex gap-2 dark:text-gray-300">
-            <IconMapPin size={18} />
-            <div className="w-full">
-              {contact.properties?.address || "N/A"}{" "}
-              {contact.properties?.city || "N/A"},{" "}
-              {contact.properties?.state || "N/A"}{" "}
-              {contact.properties?.zip || "N/A"}
-            </div>
-          </div>
+
+          {/* Address */}
+<div className="flex items-center gap-2 dark:text-gray-300">
+  <div className="p-2 rounded-full bg-gray-200 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 transition">
+    <IconMapPin size={18} />
+  </div>
+  {contact.properties.address ? (
+    <a
+      href={googleMapsLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="hover:underline"
+    >
+      {fullAddress}
+    </a>
+  ) : (
+    "N/A"
+  )}
+</div>
+
+
 
           <div className="flex gap-2 items-center">
             <button
@@ -163,15 +205,15 @@ export default function ContactPageClient({ id }: { id: string }) {
       </div>
 
       <div className="flex items-center gap-4 my-6">
-        <hr className="flex-grow border-t border-gray-300 dark:border-zinc-900" />
+        <hr className="flex-grow border-t border-gray-300 dark:border-zinc-600" />
         <div className="text-lg font-semibold whitespace-nowrap dark:text-gray-100">
           Meeting Logs
         </div>
-        <hr className="flex-grow border-t border-gray-300 dark:border-zinc-900" />
+        <hr className="flex-grow border-t border-gray-300 dark:border-zinc-600" />
       </div>
 
       <MeetingLogList ref={logListRef} contactId={contact.id} />
-      {/* <LogMeetingModal logListRef={logListRef} onSuccess={() => mutate()} /> */}
+
       <LogMeetingModal
         logListRef={logListRef}
         refetchContact={() => mutate()}
@@ -183,7 +225,6 @@ export default function ContactPageClient({ id }: { id: string }) {
         currentStatus={contact.properties.l2_lead_status || "pending visit"}
         contactId={contact.id}
         contact={contact}
-        // mutateContact={(updated, revalidate) => mutate()}
         mutateContact={(updated, revalidate) =>
           mutate(() => updated, { revalidate })
         }
