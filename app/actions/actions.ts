@@ -7,14 +7,87 @@ import {
   HubSpotContact,
 } from "@/types/hubspot";
 
+// interface HubSpotSearchResponse {
+//   results: HubSpotContact[];
+//   paging?: {
+//     next?: {
+//       after: string;
+//     };
+//   };
+// }
+
+type ContactSearchResult = {
+  results: HubSpotContact[];
+  paging?: {
+    next?: {
+      after: string;
+    };
+  };
+};
+
 export async function searchContactsByCompany(
   company: string,
   after = "",
   limit = 50,
   email?: string,
   brand: "litto" | "skwezed" = "litto"
-): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  return searchContacts("company", company, after, limit, email, brand);
+): Promise<ContactSearchResult> {
+  const { baseUrl, token } = getHubspotCredentials(brand);
+
+  const filters = [
+    {
+      propertyName: "company",
+      operator: "CONTAINS_TOKEN",
+      value: company,
+    },
+  ];
+
+  if (email) {
+    filters.push({
+      propertyName: "ba_email",
+      operator: "EQ",
+      value: email,
+    });
+  }
+
+  const response = await fetch(`${baseUrl}/crm/v3/objects/contacts/search`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      filterGroups: [{ filters }],
+      properties: [
+        "firstname",
+        "lastname",
+        "email",
+        "company",
+        "phone",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "hs_lead_status",
+        "l2_lead_status",
+        "ba_email",
+      ],
+      limit,
+      after: after || undefined,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`HubSpot Error ${response.status}: ${text}`);
+  }
+
+  const data = await response.json();
+
+  return {
+    results: data.results ?? [],
+    paging: data.paging ?? undefined,
+  };
 }
 
 export async function searchContactsByCity(
@@ -30,9 +103,71 @@ export async function searchContactsByPostalCode(
   postalCode: string,
   after = "",
   limit = 50,
-  brand: "litto" | "skwezed" = "litto"
-): Promise<{ results: HubSpotContact[]; paging: string | null }> {
-  return searchContacts("zip", postalCode, after, limit, undefined, brand);
+  brand: "litto" | "skwezed" = "litto",
+  options?: {
+    company?: string;
+    status?: string;
+  }
+): Promise<ContactSearchResult> {
+  const { baseUrl, token } = getHubspotCredentials(brand);
+
+  const filters = [
+    { propertyName: "zip", operator: "EQ", value: postalCode },
+    ...(options?.company
+      ? [
+          {
+            propertyName: "company",
+            operator: "CONTAINS_TOKEN",
+            value: options.company,
+          },
+        ]
+      : []),
+    ...(options?.status && options.status !== "all"
+      ? [
+          {
+            propertyName: "l2_lead_status",
+            operator: "EQ",
+            value: options.status,
+          },
+        ]
+      : []),
+  ];
+
+  const res = await fetch(`${baseUrl}/crm/v3/objects/contacts/search`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      filterGroups: [{ filters }],
+      properties: [
+        "firstname",
+        "lastname",
+        "jobtitle",
+        "email",
+        "company",
+        "phone",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "hs_lead_status",
+        "l2_lead_status",
+        "ba_email",
+      ],
+      sorts: [{ propertyName: "createdate", direction: "DESCENDING" }],
+      limit,
+      ...(after ? { after } : {}),
+    }),
+  });
+
+  const data = await res.json();
+
+  return {
+    results: data.results ?? [],
+    paging: data.paging ?? undefined,
+  };
 }
 
 async function searchContacts(
@@ -164,7 +299,7 @@ export async function fetchHubSpotContactsPaginated(
   const data = await res.json();
 
   return {
-    results: data.results,
-    next: data.paging?.next?.after ?? null,
+    results: data.results ?? [],
+    paging: data.paging ?? undefined,
   };
 }

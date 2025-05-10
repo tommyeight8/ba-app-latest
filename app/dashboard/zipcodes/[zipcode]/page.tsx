@@ -1,91 +1,64 @@
-// app/zip/[zip-code]/page.tsx
-import { searchContactsByPostalCode } from "@/app/actions/actions";
-import { HubSpotContact } from "@/types/hubspot";
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { IconMapPin } from "@tabler/icons-react";
-import { cookies } from "next/headers";
 import { ContactCard } from "@/components/ContactCard";
-import SearchAndFilter from "@/components/SearchAndFilter";
-import { useBrand } from "@/context/BrandContext";
+import { useContactContext } from "@/context/ContactContext";
 
-export const dynamic = "force-dynamic";
+export default function ContactsByZipPage() {
+  const { zipcode } = useParams(); // <-- useParams for dynamic route param
+  const searchParams = useSearchParams();
 
-const PAGE_SIZE = 12;
+  const decodedZip = decodeURIComponent(zipcode as string);
+  const company = searchParams.get("company") || "";
+  const status = searchParams.get("status") || "all";
+  const pageParam = parseInt(searchParams.get("page") || "1", 10);
 
-type Params = {
-  zipcode: string;
-};
+  const {
+    contacts,
+    fetchPage,
+    loadingContacts,
+    setQuery,
+    setSelectedStatus,
+    setSelectedZip,
+  } = useContactContext();
 
-type SearchParams = {
-  page?: string;
-};
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
-type Props = {
-  params: Promise<Params>;
-  searchParams: Promise<SearchParams>;
-};
-
-export default async function ContactsByZipPage({
-  params,
-  searchParams,
-}: Props) {
-  const { zipcode: zipRaw } = await params;
-  const { page } = await searchParams;
-
-  const zipCode = decodeURIComponent(zipRaw);
-  const currentPage = parseInt(page || "1", 10);
-
-  const { brand } = useBrand();
-
-  // Fetch paginated cursor until desired page
-  const cursors: string[] = [""];
-  let after = "";
-
-  for (let i = 1; i < currentPage; i++) {
-    const res = await searchContactsByPostalCode(
-      zipCode,
-      after,
-      PAGE_SIZE,
-      brand
+  useEffect(() => {
+    setQuery(company);
+    setSelectedStatus(status);
+    setSelectedZip(decodedZip);
+    fetchPage(pageParam, status, company, undefined, decodedZip).then(() =>
+      setHasLoadedOnce(true)
     );
-    after = res.paging ?? "";
-    cursors.push(after);
-    if (!after) break;
-  }
+  }, [decodedZip, company, status, pageParam]);
 
-  const { results, paging } = await searchContactsByPostalCode(
-    zipCode,
-    after,
-    PAGE_SIZE,
-    brand
-  );
-
-  if (!results || results.length === 0) {
-    notFound();
+  if (!contacts.length && hasLoadedOnce && !loadingContacts) {
+    return (
+      <div className="p-6">No contacts found for zip code: {decodedZip}</div>
+    );
   }
 
   return (
-    <main className="md:p-6 min-h-screen">
-      <h1 className="font-bold mb-4 flex items-center text-xl md:text-2xl">
-        <IconMapPin className="text-gray-300 dark:text-zinc-500" />
-        <span className="text-gray-300 dark:text-zinc-500">
-          Zip Code:&nbsp;
-        </span>
-        {zipCode}
+    <div className="md:p-6 min-h-screen p-4 w-full max-w-[1200px] mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+      <h1 className="font-bold my-8 flex items-center text-xl md:text-xl">
+        <IconMapPin className="text-zinc-400 dark:text-zinc-500 mr-2" />
+        <span className="text-zinc-400 dark:text-zinc-500">Zip Code:</span>
+        <span className="ml-1">{decodedZip}</span>
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {results.map((contact: HubSpotContact) => {
-          console.log(contact.id);
-          return (
-            <ContactCard
-              key={`${contact.id}-${contact.properties.l2_lead_status}`}
-              contact={contact}
-              href={contact.id}
-            />
-          );
-        })}
+        {contacts.map((contact) => (
+          <ContactCard
+            key={`${contact.id}-${contact.properties?.l2_lead_status}`}
+            contact={contact}
+            href={contact.id}
+          />
+        ))}
       </div>
-    </main>
+    </div>
   );
 }

@@ -15,30 +15,16 @@ interface HubSpotSearchResponse {
 export async function fetchAllContactsByEmail(
   email: string,
   brand: "litto" | "skwezed"
-): Promise<HubSpotContact[]> {
-  const { baseUrl, token } = getHubspotCredentials(brand); // ✅ cleaner
+): Promise<{
+  results: HubSpotContact[];
+  paging?: { next?: { after: string } };
+}> {
+  const { baseUrl, token } = getHubspotCredentials(brand);
 
   if (!baseUrl || !token) {
     throw new Error(`❌ Missing HubSpot API credentials for ${brand}`);
   }
 
-  // const properties =
-  //   brand === "skwezed"
-  //     ? ["email", "firstname", "lastname"]
-  //     : [
-  //         "firstname",
-  //         "lastname",
-  //         "email",
-  //         "company",
-  //         "phone",
-  //         "address",
-  //         "city",
-  //         "state",
-  //         "zip",
-  //         "ba_email",
-  //         "hs_lead_status",
-  //         "l2_lead_status",
-  //       ];
   const properties = [
     "firstname",
     "lastname",
@@ -57,34 +43,32 @@ export async function fetchAllContactsByEmail(
 
   const results: HubSpotContact[] = [];
   let after: string | undefined = undefined;
+  let lastPaging: HubSpotSearchResponse["paging"] = undefined;
 
   do {
-    const res: Response = await fetch(
-      `${baseUrl}/crm/v3/objects/contacts/search`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          filterGroups: [
-            {
-              filters: [
-                {
-                  propertyName: "ba_email",
-                  operator: "EQ",
-                  value: email,
-                },
-              ],
-            },
-          ],
-          properties,
-          limit: 100,
-          after,
-        }),
-      }
-    );
+    const res = await fetch(`${baseUrl}/crm/v3/objects/contacts/search`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: "ba_email",
+                operator: "EQ",
+                value: email,
+              },
+            ],
+          },
+        ],
+        properties,
+        limit: 100,
+        after,
+      }),
+    });
 
     if (!res.ok) {
       const text = await res.text();
@@ -93,9 +77,12 @@ export async function fetchAllContactsByEmail(
 
     const data: HubSpotSearchResponse = await res.json();
     results.push(...(data.results ?? []));
-
     after = data.paging?.next?.after;
+    lastPaging = data.paging;
   } while (after);
 
-  return results;
+  return {
+    results,
+    paging: lastPaging,
+  };
 }

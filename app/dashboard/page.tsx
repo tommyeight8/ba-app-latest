@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { CreateContactModal } from "@/components/CreateContactModal";
 import { Icon123 } from "@tabler/icons-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function DashboardPageContent() {
   const {
@@ -22,20 +23,55 @@ export default function DashboardPageContent() {
     setSelectedStatus,
     setSelectedZip,
     selectedZip,
+    setCursors,
   } = useContactContext();
 
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [openContactModal, setOpenContactModal] = useState(false);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   useEffect(() => {
-    // fetchPage(1, "all", "").then(() => setHasLoadedOnce(true));
-    fetchPage(1, selectedStatus, query, undefined, selectedZip).then(() =>
-      setHasLoadedOnce(true)
-    );
+    const pageParam = Number(searchParams.get("page") || "1");
+    const statusParam = searchParams.get("status") || "all";
+    const queryParam = searchParams.get("query") || "";
+    const zipParam = searchParams.get("zip");
+
+    setQuery(queryParam);
+    setSelectedStatus(statusParam);
+    setSelectedZip(zipParam || null);
+
+    fetchPage(
+      pageParam,
+      statusParam,
+      queryParam,
+      undefined,
+      zipParam || null
+    ).then(() => setHasLoadedOnce(true));
   }, []);
 
+  useEffect(() => {
+    if (!hasLoadedOnce) return;
+    const params = new URLSearchParams();
+    if (query) params.set("query", query);
+    if (selectedStatus !== "all") params.set("status", selectedStatus);
+    if (selectedZip) params.set("zip", selectedZip);
+    params.set("page", String(page));
+
+    router.replace(`?${params.toString()}`);
+  }, [query, selectedStatus, selectedZip, page, hasLoadedOnce]);
+
+  useEffect(() => {
+    if (!hasLoadedOnce) return;
+
+    // Reset cursors and fetch from page 1 when filters change
+    setCursors({});
+    fetchPage(1, selectedStatus, query, undefined, selectedZip);
+  }, [query, selectedStatus, selectedZip]);
+
   return (
-    <div className="flex flex-col gap-6 p-4 md:p-6 w-full max-w-[1200px] m-auto min-h-screen h-full">
+    <div className="flex flex-col gap-6 p-4 md:p-6 w-full max-w-[1200px] mx-auto">
       <SearchAndFilter />
 
       {loadingContacts ? (
@@ -73,11 +109,9 @@ export default function DashboardPageContent() {
         <>
           <ContactCardGrid />
 
-          <div className="ml-auto flex items-center gap-4 text-sm">
+          <div className="ml-auto flex items-center gap-4 text-sm mt-auto">
             <Button
               onClick={() => {
-                setSelectedZip(null); // ← clear ZIP filtering
-                // fetchPage(page - 1, selectedStatus, query);
                 fetchPage(
                   page - 1,
                   selectedStatus,
@@ -90,11 +124,10 @@ export default function DashboardPageContent() {
             >
               <ArrowLeft />
             </Button>
+
             <span className="text-gray-400">Page {page}</span>
             <Button
               onClick={() => {
-                if (selectedZip) return;
-                // fetchPage(page + 1, selectedStatus, query);
                 fetchPage(
                   page + 1,
                   selectedStatus,

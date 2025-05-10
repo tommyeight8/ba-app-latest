@@ -59,8 +59,6 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
   // }));
   // ✅ Add this to support optimistic update
   const addOptimisticMeeting = (newMeeting: any) => {
-    console.log("🧪 Optimistic newMeeting", newMeeting);
-
     const meetingWithId = {
       ...newMeeting,
       id: newMeeting.id || `temp-${Date.now()}`, // Fallback temp ID
@@ -74,8 +72,6 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
     addOptimisticMeeting,
   }));
 
-  console.log(meetings);
-
   useEffect(() => {
     fetchMeetings();
   }, [contactId]);
@@ -87,7 +83,7 @@ export const MeetingLogList = forwardRef(function MeetingLogList(
     return (
       <div
         key={meeting.id}
-        className="border border-muted bg-muted/50 dark:bg-muted/50 p-4 rounded shadow-sm flex flex-col mb-4"
+        className="border border-muted bg-muted/50 dark:bg-black/30 p-4 rounded shadow-sm flex flex-col mb-4"
       >
         <div
           onClick={() => toggleCollapse(meeting.id)}

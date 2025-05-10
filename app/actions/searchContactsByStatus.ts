@@ -3,13 +3,25 @@
 import { HubSpotContact } from "@/types/hubspot";
 import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
+interface HubSpotSearchResponse {
+  results: HubSpotContact[];
+  paging?: {
+    next?: {
+      after: string;
+    };
+  };
+}
+
 export async function searchContactsByStatus(
   status: string,
   after = "",
   limit = 12,
   email?: string,
   brand: "litto" | "skwezed" = "litto" // 🔥 optional brand argument, default to litto
-): Promise<{ results: HubSpotContact[]; paging: string | null }> {
+): Promise<{
+  results: HubSpotContact[];
+  paging?: { next?: { after: string } };
+}> {
   const { baseUrl, token } = getHubspotCredentials(brand);
 
   const filters =
@@ -68,10 +80,10 @@ export async function searchContactsByStatus(
     }),
   });
 
-  const data = await response.json();
+  const data: HubSpotSearchResponse = await response.json();
 
   return {
-    results: data.results ?? [],
-    paging: data.paging?.next?.after ?? null,
+    results: data.results,
+    paging: data.paging,
   };
 }

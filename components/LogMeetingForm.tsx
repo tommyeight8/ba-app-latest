@@ -148,8 +148,6 @@ export function LogMeetingForm({
         ownerId: selectedOwnerId,
       })
         .then((newMeeting) => {
-          console.log("✅ onSuccess is about to run with:", newMeeting);
-
           toast.success("Meeting logged!");
           form.reset();
 
@@ -181,8 +179,6 @@ export function LogMeetingForm({
         });
     });
   };
-
-  console.log("IS GLOBAL", useGlobalList);
 
   return (
     <Form {...form}>

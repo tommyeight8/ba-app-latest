@@ -23,8 +23,6 @@ export function LogMeetingModal({
 
   if (!contactId || !logContactData) return null;
 
-  console.log("Log Modal: ", logListRef);
-
   return (
     <Dialog open={logOpen} onOpenChange={setLogOpen}>
       <DialogContent className="sm:max-w-lg w-full max-h-[85vh] overflow-y-auto">
@@ -46,8 +44,6 @@ export function LogMeetingModal({
           //   setLogOpen(false);
           // }}
           onSuccess={(meetingFromServer) => {
-            console.log("🔥 calling addOptimisticMeeting");
-
             const formatted = {
               id: meetingFromServer.id || `temp-${Date.now()}`,
               properties: meetingFromServer.properties, // Ensure this structure matches what your UI expects

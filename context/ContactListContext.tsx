@@ -60,7 +60,7 @@ export function ContactListProvider({ children }: { children: ReactNode }) {
       setLoadingContacts(false);
 
       const zipSet = new Set(
-        allRes
+        allRes.results
           .map((c) => c.properties?.zip)
           .filter((zip): zip is string => typeof zip === "string")
       );

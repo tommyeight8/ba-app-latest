@@ -2,6 +2,13 @@
 
 import { getHubspotCredentials } from "@/lib/getHubspotCredentials";
 
+type HubspotOwner = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+};
+
 export async function getHubspotOwners(brand: "litto" | "skwezed") {
   const { baseUrl, token } = getHubspotCredentials(brand);
 
@@ -10,7 +17,7 @@ export async function getHubspotOwners(brand: "litto" | "skwezed") {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    cache: "no-store", // optional but recommended
+    cache: "no-store",
   });
 
   if (!res.ok) {
@@ -21,11 +28,12 @@ export async function getHubspotOwners(brand: "litto" | "skwezed") {
 
   const data = await res.json();
 
-  return data.results.map((owner: any) => ({
+  return data.results.map((owner: HubspotOwner) => ({
     id: owner.id,
     name:
       owner.firstName && owner.lastName
         ? `${owner.firstName} ${owner.lastName}`
         : owner.email || `Owner ${owner.id}`,
+    email: owner.email,
   }));
 }

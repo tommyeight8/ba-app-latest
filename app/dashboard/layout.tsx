@@ -67,7 +67,8 @@ export default function DashboardLayout({
             avatar: "",
           }}
         />
-        <main className="flex flex-col gap-6 w-full bg-muted/50 m-auto">
+        {/* <main className="flex flex-col gap-6 w-full bg-muted/50 h-full"> */}
+        <main className="flex flex-col gap-6 w-full bg-muted/90 min-h-screen items-start justify-start">
           {children}
         </main>
       </SidebarInset>

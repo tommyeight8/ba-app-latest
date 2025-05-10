@@ -6,19 +6,17 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { IconInnerShadowTop, IconPlus } from "@tabler/icons-react";
 import { NavUser } from "@/components/nav-user";
 import Image from "next/image";
 import { SideZipcodeFilter } from "./ZipCodeList";
+import { ZipCodeLinkList } from "./ZipCodeLinkList";
 import Link from "next/link";
 import { useBrand } from "@/context/BrandContext";
-import { ZipCodeLinkList } from "./ZipCodeLinkList";
-import { Button } from "./ui/button";
 import { useContactContext } from "@/context/ContactContext";
+import { usePathname } from "next/navigation";
+
+import { motion, AnimatePresence } from "framer-motion";
 
 export function AppSidebar({
   children,
@@ -28,6 +26,7 @@ export function AppSidebar({
 }) {
   const { brand } = useBrand();
   const { setQuery, setSelectedZip, setSelectedStatus } = useContactContext();
+  const pathname = usePathname();
 
   const handleReset = () => {
     setQuery("");
@@ -35,10 +34,15 @@ export function AppSidebar({
     setSelectedStatus("all");
   };
 
+  // Check if path matches /dashboard/contacts/[zip] format
+  const isZipContactRoute = /^\/dashboard\/(contacts|zipcodes)\/[^/]+$/.test(
+    pathname
+  );
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className={`${brand === "skwezed" && "bg-[#009444]"} p-4`}>
-        <Link href={"/dashboard"} onClick={handleReset} className="">
+        <Link href="/dashboard" onClick={handleReset}>
           {brand === "litto" ? (
             <Image
               src="/images/litto-logo-blk.webp"
@@ -54,7 +58,6 @@ export function AppSidebar({
               width={100}
               height={50}
               alt="logo"
-              className=""
               quality={100}
             />
           )}
@@ -65,10 +68,17 @@ export function AppSidebar({
         className={`${brand === "skwezed" && "bg-[#009444]"} gap-0`}
       >
         {children}
-
-        {/* <SideZipcodeFilter /> */}
-        {/* <ZipCodeLinkList /> */}
-        <SideZipcodeFilter />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={isZipContactRoute ? "zip-link-list" : "zipcode-filter"}
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {isZipContactRoute ? <ZipCodeLinkList /> : <SideZipcodeFilter />}
+          </motion.div>
+        </AnimatePresence>
       </SidebarContent>
 
       <SidebarFooter className={`${brand === "skwezed" && "bg-[#009444]"}`}>

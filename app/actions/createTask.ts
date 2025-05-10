@@ -16,6 +16,11 @@ type CreateTaskOptions = {
   ownerId?: string;
 };
 
+type HubspotOwner = {
+  id: string;
+  name: string;
+};
+
 export async function createTask({
   brand,
   contactId,
@@ -33,13 +38,17 @@ export async function createTask({
 
   if (!finalOwnerId) {
     const contact = await getContactById(contactId, brand);
-
     finalOwnerId = contact?.properties?.hubspot_owner_id;
 
     if (!finalOwnerId) {
-      // ✅ Fallback to first available owner
-      const owners = await getHubspotOwners(brand);
-      finalOwnerId = owners?.[0]?.id;
+      const owners: HubspotOwner[] = await getHubspotOwners(brand);
+
+      // Match based on the `.name` field which contains the email
+      const hempOwner = owners.find(
+        (owner) => owner.name === "hemp@itslitto.com"
+      );
+
+      finalOwnerId = hempOwner?.id ?? owners?.[0]?.id;
     }
   }
 

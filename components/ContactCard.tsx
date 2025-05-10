@@ -58,7 +58,8 @@ export function ContactCard({
     <>
       <Card
         onClick={() => router.push(`/dashboard/contacts/${safeId}`)}
-        className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0 dark:bg-muted/50"
+        // className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0 dark:bg-muted/50"
+        className="hover:shadow-lg transition-shadow h-full flex flex-col gap-0 dark:bg-black/20"
       >
         <div className="cursor-pointer flex-grow">
           <CardContent className="p-4 flex flex-col gap-2">
